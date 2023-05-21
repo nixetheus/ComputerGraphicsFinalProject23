@@ -1,0 +1,2 @@
+C:\Users\matti\UNI - Local Folder\ComputerGraphics\Progetto\x64\Debug\ProjectTSP.exe
+C:\Users\matti\UNI - Local Folder\ComputerGraphics\ComputerGraphicsFinalProject23\x64\Debug\ProjectTSP.exe
