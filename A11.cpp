@@ -3,7 +3,6 @@
 #include "Starter.hpp"
 #include "TextMaker.hpp"
 
-
  std::vector<SingleText> demoText = {
 	{1, {"Direct Light", "", "", ""}, 0, 0},
 	{1, {"Point Light", "", "", ""}, 0, 0},
@@ -114,7 +113,7 @@ class ProjectTSP : public BaseProject {
 
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		M1.init(this, "models/Room.obj");
+		M1.init(this, "models/TheStanleyParable.obj");
 		
 		T1.init(this, "textures/TexturesCity.png");
 
@@ -233,16 +232,25 @@ class ProjectTSP : public BaseProject {
 		// Camera target height and distance
 		const float camHeight = 1.25;
 		const float camDist = 1.5;
+		// Height limits
+		const float highPos = 3.0f;
+		const float lowPos = 1.0f;
 		// Camera Pitch limits
 		const float minPitch = glm::radians(-60.0f);
-		const float maxPitch = glm::radians(60.0f);
+		const float maxPitch = glm::radians(40.0f);
 		// Rotation and motion speed
 		const float ROT_SPEED = glm::radians(120.0f);
 		const float MOVE_SPEED = 2.0f;
 
 		// Integration with the timers and the controllers
 		float deltaT;
-		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
+		glm::vec3 m, r;
+		r = glm::vec3(0.0f);
+		m = glm::vec3(0.0f);
+		//m = glm::vec3(0.0f);
+		// Initialize Camera Height to highPos
+		Pos.y = Pos.y == 0.0f ? highPos : Pos.y;
+
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
 
@@ -258,17 +266,21 @@ class ProjectTSP : public BaseProject {
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
 		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
-		Pos = Pos + MOVE_SPEED * m.y * glm::vec3(0,1,0) * deltaT;
-		Pos.y = Pos.y < 0.0f ? 0.0f : Pos.y;
+		Pos.y = m.y == -1.0f ? lowPos : 
+					m.y == 1.0f ? highPos : Pos.y;
+		//Pos = Pos + m.y * glm::vec3(0,1,0);
+		//Pos.y = Pos.y < 1.0f ? 1.0f : Pos.y;
+		//Pos.y = Pos.y > 3.0f ? 3.0f : Pos.y;
 		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 		// Rotation
 		Yaw = Yaw - ROT_SPEED * deltaT * r.y;
 		Pitch = Pitch + ROT_SPEED * deltaT * r.x;
 		Pitch  =  Pitch < minPitch ? minPitch :
 				   (Pitch > maxPitch ? maxPitch : Pitch);
-		Roll   = Roll   - ROT_SPEED * deltaT * r.z;
-		Roll   = Roll < glm::radians(-175.0f) ? glm::radians(-175.0f) :
-				   (Roll > glm::radians( 175.0f) ? glm::radians( 175.0f) : Roll);
+		// NO ROLL PERMITTED (useful...)
+		//Roll  = Roll   - ROT_SPEED * deltaT * r.z;
+		//Roll   = Roll < glm::radians(-175.0f) ? glm::radians(-175.0f) :
+		//		   (Roll > glm::radians( 175.0f) ? glm::radians( 175.0f) : Roll);
 
 //std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
