@@ -4,9 +4,7 @@
 #include "TextMaker.hpp"
 
  std::vector<SingleText> demoText = {
-	{1, {"Direct Light", "", "", ""}, 0, 0},
-	{1, {"Point Light", "", "", ""}, 0, 0},
-	{1, {"Spot Light", "", "", ""}, 0, 0},
+	{1, {"The Stanley Parable - Demo", "", "", ""}, 0, 0},
 };
 
 // The uniform buffer object used in this example
