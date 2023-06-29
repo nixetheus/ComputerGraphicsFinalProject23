@@ -272,6 +272,8 @@ class ProjectTSP : public BaseProject {
 		//Pos.y = Pos.y < 1.0f ? 1.0f : Pos.y;
 		//Pos.y = Pos.y > 3.0f ? 3.0f : Pos.y;
 		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+
+		std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
 		// Rotation
 		Yaw = Yaw - ROT_SPEED * deltaT * r.y;
 		Pitch = Pitch + ROT_SPEED * deltaT * r.x;
