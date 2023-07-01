@@ -180,9 +180,9 @@ class ProjectTSP : public BaseProject {
 			if(!debounce) {
 				debounce = true;
 				curDebounce = GLFW_KEY_SPACE;
-				//currScene = (currScene+1) % 3;
 				std::cout << "Scene : " << currScene << "\n";
-				Pos = glm::vec3(0,0,currScene == 0 ? 15 : 0);
+				//Reset position when pressing SPACE
+				//Pos = glm::vec3(0,0,currScene == 0 ? 15 : 0);
 				RebuildPipeline();
 			}
 		} else {
@@ -222,7 +222,8 @@ class ProjectTSP : public BaseProject {
 	}
 	
 	void GameLogic() {
-		// Parameters
+
+		/////////////////////////// PARAMETERS ///////////////////////////
 		// Camera FOV-y, Near Plane and Far Plane
 		const float FOVy = glm::radians(45.0f);
 		const float nearPlane = 0.1f;
@@ -240,6 +241,8 @@ class ProjectTSP : public BaseProject {
 		const float ROT_SPEED = glm::radians(120.0f);
 		const float MOVE_SPEED = 2.0f;
 
+		////////////////// Game Logic implementation //////////////////
+
 		// Integration with the timers and the controllers
 		float deltaT;
 		glm::vec3 m, r;
@@ -251,16 +254,17 @@ class ProjectTSP : public BaseProject {
 
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
+				
+		
+		/////////////////////////// WORLD ////////////////////////////
+		
 
-		// Game Logic implementation
-		// Current Player Position - statc variable make sure its value remain unchanged in subsequent calls to the procedure
 
-		// To be done in the assignment
+
+		/////////////////////////// CAMERA ///////////////////////////
+
 		ViewPrj = glm::mat4(1);
 		glm::mat4 World = glm::mat4(1);
-		
-		// World
-		// Position
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
 		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
@@ -282,26 +286,31 @@ class ProjectTSP : public BaseProject {
 		//Roll   = Roll < glm::radians(-175.0f) ? glm::radians(-175.0f) :
 		//		   (Roll > glm::radians( 175.0f) ? glm::radians( 175.0f) : Roll);
 
-//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
+		//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
 		// Final world matrix computaiton
-		World = glm::translate(glm::mat4(1), Pos) * glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0));
+		World = glm::rotate(glm::mat4(1.0f), -Yaw, glm::vec3(0, 1, 0)) *
+				glm::rotate(glm::mat4(1.0f), -Pitch, glm::vec3(1, 0, 0)) *
+				glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0, 0, 1)) * 
+				glm::translate(glm::mat4(1), -Pos);
 		
+		// TO DO -> Posizione oggetti sbagliata
+
 		// Projection
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;
 
 		// View
 		// Target
-		glm::vec3 target = Pos + glm::vec3(0.0f, camHeight, 0.0f);
+		//glm::vec3 target = Pos + glm::vec3(0.0f, camHeight, 0.0f);
 
 		// Camera position, depending on Yaw parameter, but not character direction
-		cameraPos = World * glm::vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
+		//cameraPos = World * glm::vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
 		// Damping of camera
-		glm::mat4 View = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0,0,1)) *
-						 glm::lookAt(cameraPos, target, glm::vec3(0,1,0));
+		//glm::mat4 View = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0,0,1)) *
+		//				 glm::lookAt(cameraPos, target, glm::vec3(0,1,0));
 
-		ViewPrj = Prj * View;
+		ViewPrj = Prj * World;
 	}
 };
 
