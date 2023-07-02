@@ -34,7 +34,7 @@ struct GlobalUniformBufferObject3 {
 };
 
 class ProjectTSP;
-void GameLogic(ProjectTSP *A, float Ar, glm::mat4 &ViewPrj, glm::mat4 &World);
+//void GameLogic(ProjectTSP *A, float Ar, glm::mat4 &ViewPrj, glm::mat4 &World); ?
 
 // MAIN ! 
 class ProjectTSP : public BaseProject {
@@ -207,6 +207,8 @@ class ProjectTSP : public BaseProject {
 
 		// updates global uniforms
 		ubo.mMat = glm::mat4(1);
+
+		// ViewPrj is the matrix that contains image showed on screen
 		ubo.mvpMat = ViewPrj;
 		ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
 		
@@ -238,8 +240,8 @@ class ProjectTSP : public BaseProject {
 		const float minPitch = glm::radians(-60.0f);
 		const float maxPitch = glm::radians(40.0f);
 		// Rotation and motion speed
-		const float ROT_SPEED = glm::radians(120.0f);
-		const float MOVE_SPEED = 2.0f;
+		const float ROT_SPEED = glm::radians(100.0f);
+		const float MOVE_SPEED = 3.0f;
 
 		////////////////// Game Logic implementation //////////////////
 
@@ -257,58 +259,49 @@ class ProjectTSP : public BaseProject {
 				
 		
 		/////////////////////////// WORLD ////////////////////////////
-		
+
+		glm::mat4 World = glm::mat4(1);
 
 
 
 		/////////////////////////// CAMERA ///////////////////////////
 
 		ViewPrj = glm::mat4(1);
-		glm::mat4 World = glm::mat4(1);
-		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
-		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
-		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
-		Pos.y = m.y == -1.0f ? lowPos : 
-					m.y == 1.0f ? highPos : Pos.y;
-		//Pos = Pos + m.y * glm::vec3(0,1,0);
-		//Pos.y = Pos.y < 1.0f ? 1.0f : Pos.y;
-		//Pos.y = Pos.y > 3.0f ? 3.0f : Pos.y;
-		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 
-		std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
-		// Rotation
+		// Rotate camera (no roll permitted, useful in this project)
 		Yaw = Yaw - ROT_SPEED * deltaT * r.y;
 		Pitch = Pitch + ROT_SPEED * deltaT * r.x;
-		Pitch  =  Pitch < minPitch ? minPitch :
-				   (Pitch > maxPitch ? maxPitch : Pitch);
-		// NO ROLL PERMITTED (useful...)
-		//Roll  = Roll   - ROT_SPEED * deltaT * r.z;
-		//Roll   = Roll < glm::radians(-175.0f) ? glm::radians(-175.0f) :
-		//		   (Roll > glm::radians( 175.0f) ? glm::radians( 175.0f) : Roll);
+		//CamPitch -= r.x * rotSpeed * deltaT;
+		Pitch = Pitch < minPitch ? minPitch :
+			(Pitch > maxPitch ? maxPitch : Pitch);
+
+		// Set moving direction, changing them with the camera (yaw) pointing direction
+		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
+		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
+
+		// Move position 
+		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
+		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+		// Set height position, low after F pressed, high after R pressed (F and R set m.y value to -1/+1, maybe change to SHIFT)
+		Pos.y = m.y == -1.0f ? lowPos : 
+					m.y == 1.0f ? highPos : Pos.y;
+
+
+		std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
 
 		//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
 		// Final world matrix computaiton
-		World = glm::rotate(glm::mat4(1.0f), -Yaw, glm::vec3(0, 1, 0)) *
+		World = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0, 0, 1)) *
 				glm::rotate(glm::mat4(1.0f), -Pitch, glm::vec3(1, 0, 0)) *
-				glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0, 0, 1)) * 
+				glm::rotate(glm::mat4(1.0f), -Yaw, glm::vec3(0, 1, 0)) *
 				glm::translate(glm::mat4(1), -Pos);
 		
 		// TO DO -> Posizione oggetti sbagliata
 
 		// Projection
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
-		Prj[1][1] *= -1;
-
-		// View
-		// Target
-		//glm::vec3 target = Pos + glm::vec3(0.0f, camHeight, 0.0f);
-
-		// Camera position, depending on Yaw parameter, but not character direction
-		//cameraPos = World * glm::vec4(0.0f, camHeight + camDist * sin(Pitch), camDist * cos(Pitch), 1.0);
-		// Damping of camera
-		//glm::mat4 View = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0,0,1)) *
-		//				 glm::lookAt(cameraPos, target, glm::vec3(0,1,0));
+		Prj[1][1] *= -1;	// Given by the different Vulkan coordinate convention compared to GLM
 
 		ViewPrj = Prj * World;
 	}

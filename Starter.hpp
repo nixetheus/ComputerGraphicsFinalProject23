@@ -1796,10 +1796,10 @@ std::cout << "Starting createInstance()\n"  << std::flush;
 			r.y = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_UP)) {
-			r.x = -1.0f;
+			r.x = 1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_DOWN)) {
-			r.x = 1.0f;
+			r.x = -1.0f;
 		}
 		if(glfwGetKey(window, GLFW_KEY_Q)) {
 			r.z = 1.0f;
