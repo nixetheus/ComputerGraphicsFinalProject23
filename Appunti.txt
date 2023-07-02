@@ -11,3 +11,5 @@ glm::mat4 ViewMatrix =	glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) *
 								glm::rotate(glm::mat4(1.0f), Pitch, glm::vec3(1, 0, 0)) *
 								glm::rotate(glm::mat4(1.0f), Roll, glm::vec3(0, 0, 0)) *
 								glm::translate(glm::mat4(1), Pos);
+
+slide 17 L19

@@ -45,12 +45,12 @@ class ProjectTSP : public BaseProject {
 	DescriptorSetLayout DSL1;
 
 	// Pipelines [Shader couples]
-	Pipeline P1;
+	Pipeline P1, P2;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model M1;
+	Model M1, M2;
 	Texture T1;
-	DescriptorSet DS1;
+	DescriptorSet DS1, DS2;
 
 	TextMaker txt;
 	
@@ -106,12 +106,15 @@ class ProjectTSP : public BaseProject {
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
 		P1.init(this, "shaders/BlinnVert.spv", "shaders/BlinnFrag1.spv", {&DSL1});
+		P2.init(this, "shaders/ProvaVert2.spv", "shaders/ProvaFrag.spv", { &DSL1 });
+
 		//P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
 		//	VK_CULL_MODE_NONE, false);
 
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		M1.init(this, "models/TheStanleyParable.obj");
+		M2.init(this, "models/Room/Objects/Clock.obj");
 		
 		T1.init(this, "textures/TexturesCity.png");
 
@@ -128,6 +131,15 @@ class ProjectTSP : public BaseProject {
 					{1, TEXTURE, 0, &T1},
 					{2, UNIFORM, sizeof(GlobalUniformBufferObject1), nullptr}
 				});
+
+		P2.create();
+
+		DS2.init(this, &DSL1, {
+					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+					{1, TEXTURE, 0, &T1},
+					{2, UNIFORM, sizeof(GlobalUniformBufferObject1), nullptr}
+			});
+
 		txt.pipelinesAndDescriptorSetsInit();
 	}
 
@@ -136,6 +148,10 @@ class ProjectTSP : public BaseProject {
 		P1.cleanup();
 		
 		DS1.cleanup();
+
+		P2.cleanup();
+
+		DS2.cleanup();
 		
 		txt.pipelinesAndDescriptorSetsCleanup();
 	}
@@ -145,10 +161,12 @@ class ProjectTSP : public BaseProject {
 	void localCleanup() {
 		T1.cleanup();
 		M1.cleanup();
+		M2.cleanup();
 
 		DSL1.cleanup();
 		
-		P1.destroy();		
+		P1.destroy();
+		P2.destroy();
 		
 		txt.localCleanup();
 	}
@@ -164,7 +182,14 @@ class ProjectTSP : public BaseProject {
 		DS1.bind(commandBuffer, P1, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
-		
+
+		P2.bind(commandBuffer);
+
+		M2.bind(commandBuffer);
+		DS2.bind(commandBuffer, P2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
+
 
 		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
 	}
@@ -209,7 +234,7 @@ class ProjectTSP : public BaseProject {
 		ubo.mMat = glm::mat4(1);
 
 		// ViewPrj is the matrix that contains image showed on screen
-		ubo.mvpMat = ViewPrj;
+		ubo.mvpMat = ViewPrj * glm::rotate(glm::mat4(1.0f), glm::radians(100.0f), glm::vec3(0, 0, 1));
 		ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
 		
 		
@@ -220,6 +245,9 @@ class ProjectTSP : public BaseProject {
 
 		DS1.map(currentImage, &ubo, sizeof(ubo), 0);
 		DS1.map(currentImage, &gubo, sizeof(gubo), 2);
+
+		DS2.map(currentImage, &ubo, sizeof(ubo), 0);
+		DS2.map(currentImage, &gubo, sizeof(gubo), 2);
 		
 	}
 	
