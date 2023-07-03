@@ -8,33 +8,6 @@
 };
 
 // The uniform buffer object used in this example
-struct UniformBufferObject {
-	alignas(16) glm::mat4 mvpMat;
-	alignas(16) glm::mat4 mMat;
-	alignas(16) glm::mat4 nMat;
-};
-
-struct GlobalUniformBufferObject1 {
-	alignas(16) glm::vec3 lightDir;
-	alignas(16) glm::vec4 lightColor;
-	alignas(16) glm::vec3 eyePos;
-};
-
-struct GlobalUniformBufferObject2 {
-	alignas(16) glm::vec3 lightPos;
-	alignas(16) glm::vec4 lightColor;
-	alignas(16) glm::vec3 eyePos;
-};
-
-struct GlobalUniformBufferObject3 {
-	alignas(16) glm::vec3 lightPos;
-	alignas(16) glm::vec3 lightDir;
-	alignas(16) glm::vec4 lightColor;
-	alignas(16) glm::vec3 eyePos;
-};
-
-// FINAL PROJECT
-
 // Global Light
 struct GlobalUniformBufferObject {
 	alignas(16) glm::vec3 DlightDir;
@@ -73,16 +46,20 @@ class ProjectTSP : public BaseProject {
 	// Descriptor Layouts [what will be passed to the shaders]
 	DescriptorSetLayout DSLGubo, DSLSpotLight, DSLMesh, DSLProcedural;
 
+	// TODO: Vertex Descriptor
+
 	// Pipelines [Shader couples]
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model MClock;  // TODO
-	Texture TClock;  // TODO
-	DescriptorSet DSGubo, DSSpotLight, DSClock;  // TODO
+	Model MTSP, MClock, MPainting, MPaperTray, MSharpener, MComputer, MLamp;
 
-	TextMaker txt;
+	Texture TTSP, TClock, TPainting, TPaperTray, TSharpener, TComputer, TLamp;
+	Texture TMeshEmit, TComputerEmit;
+
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSPainting, DSPaperTray, DSSharpener, DSComputer, DSLamp;
 	
+	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
 	int currScene = 0;
 	float Ar;
@@ -119,9 +96,8 @@ class ProjectTSP : public BaseProject {
 	// Here you load and setup all your Vulkan Models and Texutures.
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
-		// Descriptor Layouts [what will be passed to the shaders]
 
-		// FINAL PROJECT
+		// Descriptor Layouts [what will be passed to the shaders]
 		DSLGubo.init(this, {
 			// this array contains the binding:
 			// first  element : the binding number
@@ -148,15 +124,31 @@ class ProjectTSP : public BaseProject {
 
 		// Pipelines [Shader couples]
 		// The last array, is a vector of pointer to the layouts of the sets that will
-		// be used in this pipeline. The first element will be set 0, and so on..
-		// FINAL PROJECT
+		// be used in this pipeline. The first element will be set 0, and so on...
 		PMesh.init(this, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
 		//PProcedural.init(this, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
+		MTSP.init(this, "models/Room/TheStanleyParable.obj");
 		MClock.init(this, "models/Room/Objects/Clock.obj");
+		MPainting.init(this, "models/Room/Objects/Painting.obj");
+		MPaperTray.init(this, "models/Room/Objects/PaperTray.obj");
+		MSharpener.init(this, "models/Room/Objects/Sharpener.obj");
+		MComputer.init(this, "models/Room/Objects/Computer.obj");
+		MLamp.init(this, "models/Room/Objects/Lamp.obj");
 
 		TClock.init(this, "textures/TexturesCity.png");
+		TTSP.init(this, "textures/TexturesCity.png");
+		TClock.init(this, "textures/TexturesCity.png");
+		TPainting.init(this, "textures/TexturesCity.png");
+		TPaperTray.init(this, "textures/TexturesCity.png");
+		TSharpener.init(this, "textures/TexturesCity.png");
+		TComputer.init(this, "textures/TexturesCity.png");
+		TLamp.init(this, "textures/TexturesCity.png");
+
+		// Emitting Textures
+		TMeshEmit.init(this, "textures/TexturesCity.png");
+		TComputerEmit.init(this, "textures/TexturesCity.png");
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
@@ -173,13 +165,49 @@ class ProjectTSP : public BaseProject {
 			{0, UNIFORM, sizeof(SpotUniformBufferObject), nullptr}
 			});
 
-		DSClock.init(this, &DSLMesh, {
-			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-			{1, TEXTURE, 0, &TClock},
-			{2, TEXTURE, 0, &TClock},
-		});
+		DSTSP.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TTSP},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
 
-		// TODO
+		DSClock.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TClock},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSPainting.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TPainting},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSPaperTray.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TPaperTray},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSSharpener.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TSharpener},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSComputer.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TComputer},
+			{2, TEXTURE, 0, &TComputerEmit},
+			});
+
+		DSLamp.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TLamp},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -190,16 +218,35 @@ class ProjectTSP : public BaseProject {
 
 		DSGubo.cleanup();
 		DSSpotLight.cleanup();
+		DSTSP.cleanup();
 		DSClock.cleanup();
+		DSPainting.cleanup();
+		DSPaperTray.cleanup();
+		DSSharpener.cleanup();
+		DSComputer.cleanup();
+		DSLamp.cleanup();
+
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
 	// You also have to destroy the pipelines
 	void localCleanup() {
 
-		TClock.cleanup();
-
+		MTSP.cleanup();
 		MClock.cleanup();
+		MPainting.cleanup();
+		MPaperTray.cleanup();
+		MSharpener.cleanup();
+		MComputer.cleanup();
+		MLamp.cleanup();
+
+		TTSP.cleanup();
+		TClock.cleanup();
+		TPainting.cleanup();
+		TPaperTray.cleanup();
+		TSharpener.cleanup();
+		TComputer.cleanup();
+		TLamp.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
@@ -223,10 +270,42 @@ class ProjectTSP : public BaseProject {
 
 		PMesh.bind(commandBuffer);
 
+		MTSP.bind(commandBuffer);
+		DSTSP.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MTSP.indices.size()), 1, 0, 0, 0);
+
 		MClock.bind(commandBuffer);
 		DSClock.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
+
+		MPainting.bind(commandBuffer);
+		DSPainting.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MPainting.indices.size()), 1, 0, 0, 0);
+
+		MPaperTray.bind(commandBuffer);
+		DSPaperTray.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MPaperTray.indices.size()), 1, 0, 0, 0);
+
+		MSharpener.bind(commandBuffer);
+		DSSharpener.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MSharpener.indices.size()), 1, 0, 0, 0);
+
+		MComputer.bind(commandBuffer);
+		DSComputer.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MComputer.indices.size()), 1, 0, 0, 0);
+
+		MLamp.bind(commandBuffer);
+		DSLamp.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MLamp.indices.size()), 1, 0, 0, 0);
+
+		//PProcedural.bind(commandBuffer);
 	}
 
 	// Here is where you update the uniforms.
@@ -262,7 +341,7 @@ class ProjectTSP : public BaseProject {
 //printMat4("ViewPrj", ViewPrj);
 //printMat4("WM", WM);
 		
-		UniformBufferObject ubo{};								
+		MeshUniformBlock ubo{};								
 		// Here is where you actually update your uniforms
 
 		// updates global uniforms
@@ -276,7 +355,7 @@ class ProjectTSP : public BaseProject {
 		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
-		float CamH, CamRadius, CamPitch, CamYaw;
+		static float CamH, CamRadius, CamPitch, CamYaw;
 		// Init local variables
 		CamH = 1.0f;
 		CamRadius = 3.0f;
@@ -315,9 +394,16 @@ class ProjectTSP : public BaseProject {
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
 
+		// TODO: create correct ubos for each object
 		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
 		DSSpotLight.map(currentImage, &spot, sizeof(spot), 0);
+		DSTSP.map(currentImage, &uboClock, sizeof(uboClock), 0);
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
+		DSPainting.map(currentImage, &uboClock, sizeof(uboClock), 0);
+		DSPaperTray.map(currentImage, &uboClock, sizeof(uboClock), 0);
+		DSSharpener.map(currentImage, &uboClock, sizeof(uboClock), 0);
+		DSComputer.map(currentImage, &uboClock, sizeof(uboClock), 0);
+		DSLamp.map(currentImage, &uboClock, sizeof(uboClock), 0);
 		
 	}
 	
