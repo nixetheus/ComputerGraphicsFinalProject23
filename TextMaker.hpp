@@ -226,7 +226,7 @@ struct TextMaker {
     void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage, int curText = 0) {
     	P.bind(commandBuffer);
 		M.bind(commandBuffer);
-		DS.bind(commandBuffer, P, currentImage);
+		DS.bind(commandBuffer, P, 0, currentImage);
 		
 		vkCmdDrawIndexed(commandBuffer,
 						static_cast<uint32_t>((*Texts)[curText].len), 1, static_cast<uint32_t>((*Texts)[curText].start), 0, 0);

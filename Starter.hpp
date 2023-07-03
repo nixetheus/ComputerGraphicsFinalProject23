@@ -268,7 +268,7 @@ struct DescriptorSet {
 	void init(BaseProject *bp, DescriptorSetLayout *L,
 		std::vector<DescriptorSetElement> E);
 	void cleanup();
-  	void bind(VkCommandBuffer commandBuffer, Pipeline &P, int currentImage);
+  	void bind(VkCommandBuffer commandBuffer, Pipeline& P, int setId, int currentImage);
   	void map(int currentImage, void *src, int size, int slot);
 };
 
@@ -2458,12 +2458,12 @@ void DescriptorSet::cleanup() {
 	}
 }
 
-void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline &P,
-						 int currentImage) {
+void DescriptorSet::bind(VkCommandBuffer commandBuffer, Pipeline& P, int setId,
+	int currentImage) {
 	vkCmdBindDescriptorSets(commandBuffer,
-					VK_PIPELINE_BIND_POINT_GRAPHICS,
-					P.pipelineLayout, 0, 1, &descriptorSets[currentImage],
-					0, nullptr);
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		P.pipelineLayout, setId, 1, &descriptorSets[currentImage],
+		0, nullptr);
 }
 
 void DescriptorSet::map(int currentImage, void *src, int size, int slot) {

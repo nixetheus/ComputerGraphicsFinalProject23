@@ -33,6 +33,35 @@ struct GlobalUniformBufferObject3 {
 	alignas(16) glm::vec3 eyePos;
 };
 
+// FINAL PROJECT
+
+// Global Light
+struct GlobalUniformBufferObject {
+	alignas(16) glm::vec3 DlightDir;
+	alignas(16) glm::vec3 DlightColor;
+	alignas(16) glm::vec3 AmbLightColor;
+	alignas(16) glm::vec3 eyePos;
+};
+
+// Spot Light
+struct SpotUniformBufferObject {
+	alignas(16) glm::vec3 lightPos;
+	alignas(16) glm::vec3 lightDir;
+	alignas(16) glm::vec4 lightColor;
+	alignas(16) glm::vec3 eyePos;
+};
+
+// Mesh Data
+struct MeshUniformBlock {
+	alignas(4) float amb;
+	alignas(4) float gamma;
+	alignas(16) glm::vec3 sColor;
+	alignas(16) glm::mat4 mvpMat;
+	alignas(16) glm::mat4 mMat;
+	alignas(16) glm::mat4 nMat;
+};
+
+
 class ProjectTSP;
 //void GameLogic(ProjectTSP *A, float Ar, glm::mat4 &ViewPrj, glm::mat4 &World); ?
 
@@ -42,15 +71,15 @@ class ProjectTSP : public BaseProject {
 	// Here you list all the Vulkan objects you need:
 	
 	// Descriptor Layouts [what will be passed to the shaders]
-	DescriptorSetLayout DSL1;
+	DescriptorSetLayout DSLGubo, DSLSpotLight, DSLMesh, DSLProcedural;
 
 	// Pipelines [Shader couples]
-	Pipeline P1, P2;
+	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model M1, M2;
-	Texture T1;
-	DescriptorSet DS1, DS2;
+	Model MClock;  // TODO
+	Texture TClock;  // TODO
+	DescriptorSet DSGubo, DSSpotLight, DSClock;  // TODO
 
 	TextMaker txt;
 	
@@ -74,9 +103,9 @@ class ProjectTSP : public BaseProject {
 		initialBackgroundColor = {0.0f, 0.6f, 0.8f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 7;
-		texturesInPool = 4;
-		setsInPool = 4;
+		uniformBlocksInPool = 20;
+		texturesInPool = 20;
+		setsInPool = 20;
 		
 		Ar = 4.0f / 3.0f;
 	}
@@ -91,107 +120,113 @@ class ProjectTSP : public BaseProject {
 	// Here you also create your Descriptor set layouts and load the shaders for the pipelines
 	void localInit() {
 		// Descriptor Layouts [what will be passed to the shaders]
-		DSL1.init(this, {
-					// this array contains the binding:
-					// first  element : the binding number
-					// second element : the type of element (buffer or texture)
-					// third  element : the pipeline stage where it will be used
-					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT},
-					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},
-					{2, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS}
-				  });
+
+		// FINAL PROJECT
+		DSLGubo.init(this, {
+			// this array contains the binding:
+			// first  element : the binding number
+			// second element : the type of element (buffer or texture)
+			// third  element : the pipeline stage where it will be used
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}            // Gubo
+			});
+
+		DSLSpotLight.init(this, {
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT}            // Spot Light
+			});
+
+		DSLMesh.init(this, {
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},          // Mesh Ubo
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},  // Mesh Texture
+			{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}   // Emission Texture
+			});
+
+		// TODO
+		DSLProcedural.init(this, {
+			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},          // Mesh Ubo
+			});
 		
 
 		// Pipelines [Shader couples]
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on..
-		P1.init(this, "shaders/BlinnVert.spv", "shaders/BlinnFrag1.spv", {&DSL1});
-		P2.init(this, "shaders/ProvaVert2.spv", "shaders/ProvaFrag.spv", { &DSL1 });
-
-		//P1.setAdvancedFeatures(VK_COMPARE_OP_LESS, VK_POLYGON_MODE_FILL,
-		//	VK_CULL_MODE_NONE, false);
-
+		// FINAL PROJECT
+		PMesh.init(this, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
+		//PProcedural.init(this, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		M1.init(this, "models/TheStanleyParable.obj");
-		M2.init(this, "models/Room/Objects/Clock.obj");
-		
-		T1.init(this, "textures/TexturesCity.png");
+		MClock.init(this, "models/Room/Objects/Clock.obj");
 
-		txt.init(this, &demoText);
+		TClock.init(this, "textures/TexturesCity.png");
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
-		P1.create();
+		PMesh.create();
+		// PProcedural.create();
 
-		DS1.init(this, &DSL1, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T1},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject1), nullptr}
-				});
-
-		P2.create();
-
-		DS2.init(this, &DSL1, {
-					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &T1},
-					{2, UNIFORM, sizeof(GlobalUniformBufferObject1), nullptr}
+		DSGubo.init(this, &DSLGubo, {
+			{0, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
 			});
 
-		txt.pipelinesAndDescriptorSetsInit();
+		DSSpotLight.init(this, &DSLSpotLight, {
+			{0, UNIFORM, sizeof(SpotUniformBufferObject), nullptr}
+			});
+
+		DSClock.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+			{1, TEXTURE, 0, &TClock},
+			{2, TEXTURE, 0, &TClock},
+		});
+
+		// TODO
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsCleanup() {
-		P1.cleanup();
-		
-		DS1.cleanup();
 
-		P2.cleanup();
+		PMesh.cleanup();
+		//PProcedural.cleanup();
 
-		DS2.cleanup();
-		
-		txt.pipelinesAndDescriptorSetsCleanup();
+		DSGubo.cleanup();
+		DSSpotLight.cleanup();
+		DSClock.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
 	// You also have to destroy the pipelines
 	void localCleanup() {
-		T1.cleanup();
-		M1.cleanup();
-		M2.cleanup();
 
-		DSL1.cleanup();
-		
-		P1.destroy();
-		P2.destroy();
-		
-		txt.localCleanup();
+		TClock.cleanup();
+
+		MClock.cleanup();
+
+		DSLGubo.cleanup();
+		DSLSpotLight.cleanup();
+		DSLMesh.cleanup();
+		DSLProcedural.cleanup();
+
+		PMesh.destroy();
+		//PProcedural.destroy();
 	}
 	
 	// Here it is the creation of the command buffer:
 	// You send to the GPU all the objects you want to draw,
 	// with their buffers and textures
 	void populateCommandBuffer(VkCommandBuffer commandBuffer, int currentImage) {
-		
-		P1.bind(commandBuffer);
 
-		M1.bind(commandBuffer);
-		DS1.bind(commandBuffer, P1, currentImage);
+		DSGubo.bind(commandBuffer, PMesh, 0, currentImage);
+		DSSpotLight.bind(commandBuffer, PMesh, 1, currentImage);
+
+		//DSGubo.bind(commandBuffer, PProcedural, 0, currentImage);
+		//DSSpotLight.bind(commandBuffer, PProcedural, 1, currentImage);
+
+		PMesh.bind(commandBuffer);
+
+		MClock.bind(commandBuffer);
+		DSClock.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-			static_cast<uint32_t>(M1.indices.size()), 1, 0, 0, 0);
-
-		P2.bind(commandBuffer);
-
-		M2.bind(commandBuffer);
-		DS2.bind(commandBuffer, P2, currentImage);
-		vkCmdDrawIndexed(commandBuffer,
-			static_cast<uint32_t>(M2.indices.size()), 1, 0, 0, 0);
-
-
-		txt.populateCommandBuffer(commandBuffer, currentImage, currScene);
+			static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Here is where you update the uniforms.
@@ -231,23 +266,58 @@ class ProjectTSP : public BaseProject {
 		// Here is where you actually update your uniforms
 
 		// updates global uniforms
-		ubo.mMat = glm::mat4(1);
+		const float FOVy = glm::radians(90.0f);
+		const float nearPlane = 0.1f;
+		const float farPlane = 100.0f;
+		const float rotSpeed = glm::radians(90.0f);
+		const float movSpeed = 1.0f;
 
-		// ViewPrj is the matrix that contains image showed on screen
-		ubo.mvpMat = ViewPrj * glm::rotate(glm::mat4(1.0f), glm::radians(100.0f), glm::vec3(0, 0, 1));
-		ubo.nMat = glm::inverse(glm::transpose(ubo.mMat));
-		
-		
-		GlobalUniformBufferObject2 gubo{};
-		gubo.lightPos = glm::vec3(0.0f, 2.0f, 0.0f);
-		gubo.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		gubo.eyePos = cameraPos;
+		float deltaT;
+		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
+		bool fire = false;
+		getSixAxis(deltaT, m, r, fire);
+		float CamH, CamRadius, CamPitch, CamYaw;
+		// Init local variables
+		CamH = 1.0f;
+		CamRadius = 3.0f;
+		CamPitch = glm::radians(15.f);
+		CamYaw = glm::radians(30.f);
+		CamH += m.z * movSpeed * deltaT;
+		CamRadius -= m.x * movSpeed * deltaT;
+		CamPitch -= r.x * rotSpeed * deltaT;
+		CamYaw += r.y * rotSpeed * deltaT;
 
-		DS1.map(currentImage, &ubo, sizeof(ubo), 0);
-		DS1.map(currentImage, &gubo, sizeof(gubo), 2);
+		GlobalUniformBufferObject gubo{};
+		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
+		Prj[1][1] *= -1;
+		glm::vec3 camTarget = glm::vec3(0, CamH, 0);
+		glm::vec3 camPos = camTarget +
+			CamRadius * glm::vec3(cos(CamPitch) * sin(CamYaw),
+				sin(CamPitch),
+				cos(CamPitch) * cos(CamYaw));
+		glm::mat4 View = glm::lookAt(camPos, camTarget, glm::vec3(0, 1, 0));
 
-		DS2.map(currentImage, &ubo, sizeof(ubo), 0);
-		DS2.map(currentImage, &gubo, sizeof(gubo), 2);
+		gubo.DlightDir = glm::normalize(glm::vec3(1, 2, 3));
+		gubo.DlightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		gubo.AmbLightColor = glm::vec3(0.1f);
+		gubo.eyePos = camPos;
+
+		SpotUniformBufferObject spot{};
+		spot.lightDir = glm::normalize(glm::vec3(1, 2, 3));
+		spot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		spot.lightPos = glm::vec3(0.1f);
+		spot.eyePos = camPos;
+
+		MeshUniformBlock uboClock{};
+		glm::mat4 World = glm::mat4(1);
+		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
+		uboClock.mvpMat = Prj * View * World;
+		uboClock.mMat = World;
+		uboClock.nMat = glm::inverse(glm::transpose(World));
+
+		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
+		DSSpotLight.map(currentImage, &spot, sizeof(spot), 0);
+		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
 		
 	}
 	
