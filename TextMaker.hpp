@@ -1,4 +1,4 @@
-
+/*
 struct SingleText {
 	int usedLines;
 	const char *l[4];
@@ -232,5 +232,5 @@ struct TextMaker {
 						static_cast<uint32_t>((*Texts)[curText].len), 1, static_cast<uint32_t>((*Texts)[curText].start), 0, 0);
 			
 	}
-};
+};*/
     

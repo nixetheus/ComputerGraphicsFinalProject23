@@ -1,11 +1,6 @@
 // This has been adapted from the Vulkan tutorial
 
 #include "Starter.hpp"
-#include "TextMaker.hpp"
-
- std::vector<SingleText> demoText = {
-	{1, {"The Stanley Parable - Demo", "", "", ""}, 0, 0},
-};
 
 // The uniform buffer object used in this example
 // Global Light
@@ -34,6 +29,14 @@ struct MeshUniformBlock {
 	alignas(16) glm::mat4 nMat;
 };
 
+// The vertices data structures
+// Mesh structure
+struct VertexMesh {
+	glm::vec3 pos;
+	glm::vec3 norm;
+	glm::vec2 UV;
+};
+
 
 class ProjectTSP;
 //void GameLogic(ProjectTSP *A, float Ar, glm::mat4 &ViewPrj, glm::mat4 &World); ?
@@ -46,13 +49,14 @@ class ProjectTSP : public BaseProject {
 	// Descriptor Layouts [what will be passed to the shaders]
 	DescriptorSetLayout DSLGubo, DSLSpotLight, DSLMesh, DSLProcedural;
 
-	// TODO: Vertex Descriptor
+	// Vertex formats
+	VertexDescriptor VMesh;
 
 	// Pipelines [Shader couples]
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model MTSP, MClock, MPainting, MPaperTray, MSharpener, MComputer, MLamp;
+	Model<VertexMesh> MTSP, MClock, MPainting, MPaperTray, MSharpener, MComputer, MLamp;
 
 	Texture TTSP, TClock, TPainting, TPaperTray, TSharpener, TComputer, TLamp;
 	Texture TMeshEmit, TComputerEmit;
@@ -128,22 +132,59 @@ class ProjectTSP : public BaseProject {
 		DSLProcedural.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},          // Mesh Ubo
 			});
+
+		// Vertex descriptors
+		VMesh.init(this, {
+			// this array contains the bindings
+			// first  element : the binding number
+			// second element : the stride of this binging
+			// third  element : whether this parameter change per vertex or per instance
+			//                  using the corresponding Vulkan constant
+			{0, sizeof(VertexMesh), VK_VERTEX_INPUT_RATE_VERTEX}
+			}, {
+				// this array contains the location
+				// first  element : the binding number
+				// second element : the location number
+				// third  element : the offset of this element in the memory record
+				// fourth element : the data type of the element
+				//                  using the corresponding Vulkan constant
+				// fifth  elmenet : the size in byte of the element
+				// sixth  element : a constant defining the element usage
+				//                   POSITION - a vec3 with the position
+				//                   NORMAL   - a vec3 with the normal vector
+				//                   UV       - a vec2 with a UV coordinate
+				//                   COLOR    - a vec4 with a RGBA color
+				//                   TANGENT  - a vec4 with the tangent vector
+				//                   OTHER    - anything else
+				//
+				// ***************** DOUBLE CHECK ********************
+				//    That the Vertex data structure you use in the "offsetoff" and
+				//	in the "sizeof" in the previous array, refers to the correct one,
+				//	if you have more than one vertex format!
+				// ***************************************************
+				{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexMesh, pos),
+					   sizeof(glm::vec3), POSITION},
+				{0, 1, VK_FORMAT_R32G32B32_SFLOAT, offsetof(VertexMesh, norm),
+					   sizeof(glm::vec3), NORMAL},
+				{0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexMesh, UV),
+					   sizeof(glm::vec2), UV}
+			});
 		
 
 		// Pipelines [Shader couples]
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on...
-		PMesh.init(this, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
-		//PProcedural.init(this, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
+		PMesh.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
+		//PProcedural.init(this, &VTODO, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		MTSP.init(this, "models/Room/TheStanleyParable.obj");
-		MClock.init(this, "models/Room/Objects/Clock.obj");
-		MPainting.init(this, "models/Room/Objects/Painting.obj");
-		MPaperTray.init(this, "models/Room/Objects/PaperTray.obj");
-		MSharpener.init(this, "models/Room/Objects/Sharpener.obj");
-		MComputer.init(this, "models/Room/Objects/Computer.obj");
-		MLamp.init(this, "models/Room/Objects/Lamp.obj");
+		MTSP.init(this, &VMesh, "models/Room/TheStanleyParable.obj", OBJ);
+		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
+		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
+		MPaperTray.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
+		MSharpener.init(this, &VMesh, "models/Room/Objects/Sharpener.obj", OBJ);
+		MComputer.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
+		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
 
 		TClock.init(this, "textures/TexturesCity.png");
 		TTSP.init(this, "textures/TexturesCity.png");
