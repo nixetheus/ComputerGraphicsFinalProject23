@@ -58,17 +58,25 @@ class ProjectTSP : public BaseProject {
 	Texture TMeshEmit, TComputerEmit;
 
 	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSPainting, DSPaperTray, DSSharpener, DSComputer, DSLamp;
+
+	// C++ storage for uniform variables
+	GlobalUniformBufferObject gubo;
+	SpotUniformBufferObject uboSpot;
+	MeshUniformBlock uboTSP, uboClock, uboPainting, uboPaperTray, uboSharpener, uboComputer, uboLamp;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
-	int currScene = 0;
 	float Ar;
+	glm::mat4 World;
 	glm::mat4 ViewPrj;
-	glm::vec3 Pos = glm::vec3(0,0,15);
 	glm::vec3 cameraPos;
+	glm::vec3 Pos = glm::vec3(0,0,15);
 	float Yaw = glm::radians(0.0f);
 	float Pitch = glm::radians(0.0f);
 	float Roll = glm::radians(0.0f);
+	// TODO
+	int gameState;
+	float CamH, CamRadius, CamPitch, CamYaw;
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -149,6 +157,14 @@ class ProjectTSP : public BaseProject {
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
 		TComputerEmit.init(this, "textures/TexturesCity.png");
+
+		// TODO
+		// Init local variables
+		CamH = 1.0f;
+		CamRadius = 3.0f;
+		CamPitch = glm::radians(15.f);
+		CamYaw = glm::radians(30.f);
+		gameState = 0;
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
@@ -315,13 +331,11 @@ class ProjectTSP : public BaseProject {
 		static int curDebounce = 0;
 //std::cout << xpos << " " << ypos << " " << m_dx << " " << m_dy << "\n";
 
-		if(glfwGetKey(window, GLFW_KEY_SPACE)) {
+		/*/if (glfwGetKey(window, GLFW_KEY_SPACE)) {
 			if(!debounce) {
 				debounce = true;
 				curDebounce = GLFW_KEY_SPACE;
 				std::cout << "Scene : " << currScene << "\n";
-				//Reset position when pressing SPACE
-				//Pos = glm::vec3(0,0,currScene == 0 ? 15 : 0);
 				RebuildPipeline();
 			}
 		} else {
@@ -329,7 +343,7 @@ class ProjectTSP : public BaseProject {
 				debounce = false;
 				curDebounce = 0;
 			}
-		}
+		}*/
 
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
@@ -337,12 +351,6 @@ class ProjectTSP : public BaseProject {
 
 		
 		GameLogic();
-		
-//printMat4("ViewPrj", ViewPrj);
-//printMat4("WM", WM);
-		
-		MeshUniformBlock ubo{};								
-		// Here is where you actually update your uniforms
 
 		// updates global uniforms
 		const float FOVy = glm::radians(90.0f);
@@ -351,59 +359,69 @@ class ProjectTSP : public BaseProject {
 		const float rotSpeed = glm::radians(90.0f);
 		const float movSpeed = 1.0f;
 
-		float deltaT;
-		glm::vec3 m = glm::vec3(0.0f), r = glm::vec3(0.0f);
-		bool fire = false;
-		getSixAxis(deltaT, m, r, fire);
-		static float CamH, CamRadius, CamPitch, CamYaw;
-		// Init local variables
-		CamH = 1.0f;
-		CamRadius = 3.0f;
-		CamPitch = glm::radians(15.f);
-		CamYaw = glm::radians(30.f);
-		CamH += m.z * movSpeed * deltaT;
-		CamRadius -= m.x * movSpeed * deltaT;
-		CamPitch -= r.x * rotSpeed * deltaT;
-		CamYaw += r.y * rotSpeed * deltaT;
-
-		GlobalUniformBufferObject gubo{};
-		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
-		Prj[1][1] *= -1;
 		glm::vec3 camTarget = glm::vec3(0, CamH, 0);
 		glm::vec3 camPos = camTarget +
 			CamRadius * glm::vec3(cos(CamPitch) * sin(CamYaw),
 				sin(CamPitch),
 				cos(CamPitch) * cos(CamYaw));
-		glm::mat4 View = glm::lookAt(camPos, camTarget, glm::vec3(0, 1, 0));
 
+		// FILL AND SET GLOBAL UNIFORMS
+		// GUBO
 		gubo.DlightDir = glm::normalize(glm::vec3(1, 2, 3));
 		gubo.DlightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		gubo.AmbLightColor = glm::vec3(0.1f);
 		gubo.eyePos = camPos;
+		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
 
-		SpotUniformBufferObject spot{};
-		spot.lightDir = glm::normalize(glm::vec3(1, 2, 3));
-		spot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		spot.lightPos = glm::vec3(0.1f);
-		spot.eyePos = camPos;
+		// SPOT UBO
+		uboSpot.lightDir = glm::normalize(glm::vec3(1, 2, 3));
+		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		uboSpot.lightPos = glm::vec3(0.1f);
+		uboSpot.eyePos = camPos;
+		DSSpotLight.map(currentImage, &uboSpot, sizeof(uboSpot), 0);
 
-		MeshUniformBlock uboClock{};
-		glm::mat4 World = glm::mat4(1);
+		// FILL AND SET OBJECTS UNIFORMS
+		uboTSP.amb = 1.0f; uboTSP.gamma = 180.0f; uboTSP.sColor = glm::vec3(1.0f);
+		uboTSP.mvpMat = ViewPrj * World;
+		uboTSP.mMat = World;
+		uboTSP.nMat = glm::inverse(glm::transpose(World));
+		DSTSP.map(currentImage, &uboTSP, sizeof(uboTSP), 0);
+
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
-		uboClock.mvpMat = Prj * View * World;
+		uboClock.mvpMat = ViewPrj * World;
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
-
-		// TODO: create correct ubos for each object
-		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
-		DSSpotLight.map(currentImage, &spot, sizeof(spot), 0);
-		DSTSP.map(currentImage, &uboClock, sizeof(uboClock), 0);
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
-		DSPainting.map(currentImage, &uboClock, sizeof(uboClock), 0);
-		DSPaperTray.map(currentImage, &uboClock, sizeof(uboClock), 0);
-		DSSharpener.map(currentImage, &uboClock, sizeof(uboClock), 0);
-		DSComputer.map(currentImage, &uboClock, sizeof(uboClock), 0);
-		DSLamp.map(currentImage, &uboClock, sizeof(uboClock), 0);
+
+		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
+		uboPainting.mvpMat = ViewPrj * World;
+		uboPainting.mMat = World;
+		uboPainting.nMat = glm::inverse(glm::transpose(World));
+		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
+
+		uboPaperTray.amb = 1.0f; uboPaperTray.gamma = 180.0f; uboPaperTray.sColor = glm::vec3(1.0f);
+		uboPaperTray.mvpMat = ViewPrj * World;
+		uboPaperTray.mMat = World;
+		uboPaperTray.nMat = glm::inverse(glm::transpose(World));
+		DSPaperTray.map(currentImage, &uboPaperTray, sizeof(uboPaperTray), 0);
+
+		uboSharpener.amb = 1.0f; uboSharpener.gamma = 180.0f; uboSharpener.sColor = glm::vec3(1.0f);
+		uboSharpener.mvpMat = ViewPrj * World;
+		uboSharpener.mMat = World;
+		uboSharpener.nMat = glm::inverse(glm::transpose(World));
+		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
+
+		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
+		uboComputer.mvpMat = ViewPrj * World * glm::translate(glm::mat4(1.0), glm::vec3(-3.0f, 3.0f, 0.0f));
+		uboComputer.mMat = World;
+		uboComputer.nMat = glm::inverse(glm::transpose(World));
+		DSComputer.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
+
+		uboLamp.amb = 1.0f; uboLamp.gamma = 180.0f; uboLamp.sColor = glm::vec3(1.0f);
+		uboLamp.mvpMat = ViewPrj * World;
+		uboLamp.mMat = World;
+		uboLamp.nMat = glm::inverse(glm::transpose(World));
+		DSLamp.map(currentImage, &uboLamp, sizeof(uboLamp), 0);
 		
 	}
 	
@@ -444,7 +462,7 @@ class ProjectTSP : public BaseProject {
 		
 		/////////////////////////// WORLD ////////////////////////////
 
-		glm::mat4 World = glm::mat4(1);
+		World = glm::mat4(1);
 
 
 
@@ -471,7 +489,7 @@ class ProjectTSP : public BaseProject {
 					m.y == 1.0f ? highPos : Pos.y;
 
 
-		std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
+		// std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
 
 		//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
