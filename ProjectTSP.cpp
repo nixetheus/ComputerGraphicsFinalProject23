@@ -408,15 +408,15 @@ class ProjectTSP : public BaseProject {
 
 		// FILL AND SET GLOBAL UNIFORMS
 		// GUBO
-		gubo.DlightDir = glm::normalize(glm::vec3(1, 2, 3));
-		gubo.DlightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+		gubo.DlightDir = glm::normalize(glm::vec3(1, 1, 1));
+		gubo.DlightColor = glm::vec4(0.2f, 0.2f, 0.2f, 1);
 		gubo.AmbLightColor = glm::vec3(0.1f);
 		gubo.eyePos = camPos;
 		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
 
 		// SPOT UBO
-		glm::vec3 lampPos = glm::vec3(3.9f, 5.0f, -2.5f); // Position of the lamp object
-		uboSpot.lightDir = glm::vec3(-3, -1, 1.5f);
+		glm::vec3 lampPos = glm::vec3(4.5f, 5.0f, -2.5f); // Position of the lamp object
+		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 1.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
 		uboSpot.eyePos = camPos;
