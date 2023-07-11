@@ -1,7 +1,21 @@
 #version 450
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(set = 1, binding = 0) uniform UniformBufferObject {
+layout(set = 0, binding = 0) uniform GlobalUniformBufferObject {
+	vec3 DlightDir;		// direction of the direct light
+	vec3 DlightColor;	// color of the direct light
+	vec3 AmbLightColor;	// ambient light
+	vec3 eyePos;		// position of the viewer
+} gubo;
+
+layout(set = 1, binding = 0) uniform SpotUniformBufferObject {
+	vec3 lightPos;
+	vec3 lightDir;
+	vec4 lightColor;
+	vec3 eyePos;
+} spot;
+
+layout(set = 2, binding = 0) uniform UniformBufferObject {
 	float amb;
 	float gamma;
 	vec3 sColor;
