@@ -56,17 +56,17 @@ class ProjectTSP : public BaseProject {
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MPainting, MPaperTray, MSharpener, MComputer, MLamp;
+	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp;
 
-	Texture TTSP, TClock, TPainting, TPaperTray, TSharpener, TComputer, TLamp;
+	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp;
 	Texture TMeshEmit, TComputerEmit;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSPainting, DSPaperTray, DSSharpener, DSComputer, DSLamp;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboPainting, uboPaperTray, uboSharpener, uboComputer, uboLamp;
+	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
@@ -180,15 +180,18 @@ class ProjectTSP : public BaseProject {
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev6.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
+		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
-		MPaperTray.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
+		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
+		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
 		MSharpener.init(this, &VMesh, "models/Room/Objects/Sharpener.obj", OBJ);
 		MComputer.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
 
 		TClock.init(this, "textures/TexturesCity.png");
+		TChair.init(this, "textures/TexturesCity.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
-		TClock.init(this, "textures/TexturesCity.png");
+		//TClock.init(this, "textures/TexturesCity.png");
 		TPainting.init(this, "textures/TexturesCity.png");
 		TPaperTray.init(this, "textures/TexturesCity.png");
 		TSharpener.init(this, "textures/TexturesCity.png");
@@ -234,13 +237,25 @@ class ProjectTSP : public BaseProject {
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
+		DSChair.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TChair},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
 		DSPainting.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TPainting},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
-		DSPaperTray.init(this, &DSLMesh, {
+		DSPaperTray1.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TPaperTray},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSPaperTray2.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TPaperTray},
 			{2, TEXTURE, 0, &TMeshEmit},
@@ -277,8 +292,10 @@ class ProjectTSP : public BaseProject {
 		DSSpotLight.cleanup();
 		DSTSP.cleanup();
 		DSClock.cleanup();
+		DSChair.cleanup();
 		DSPainting.cleanup();
-		DSPaperTray.cleanup();
+		DSPaperTray1.cleanup();
+		DSPaperTray2.cleanup();
 		DSSharpener.cleanup();
 		DSComputer.cleanup();
 		DSLamp.cleanup();
@@ -291,14 +308,17 @@ class ProjectTSP : public BaseProject {
 
 		MTSP.cleanup();
 		MClock.cleanup();
+		MChair.cleanup();
 		MPainting.cleanup();
-		MPaperTray.cleanup();
+		MPaperTray1.cleanup();
+		MPaperTray2.cleanup();
 		MSharpener.cleanup();
 		MComputer.cleanup();
 		MLamp.cleanup();
 
 		TTSP.cleanup();
 		TClock.cleanup();
+		TChair.cleanup();
 		TPainting.cleanup();
 		TPaperTray.cleanup();
 		TSharpener.cleanup();
@@ -337,15 +357,25 @@ class ProjectTSP : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
 
+		MChair.bind(commandBuffer);
+		DSChair.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MChair.indices.size()), 1, 0, 0, 0);
+
 		MPainting.bind(commandBuffer);
 		DSPainting.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MPainting.indices.size()), 1, 0, 0, 0);
 
-		MPaperTray.bind(commandBuffer);
-		DSPaperTray.bind(commandBuffer, PMesh, 2, currentImage);
+		MPaperTray1.bind(commandBuffer);
+		DSPaperTray1.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-			static_cast<uint32_t>(MPaperTray.indices.size()), 1, 0, 0, 0);
+			static_cast<uint32_t>(MPaperTray1.indices.size()), 1, 0, 0, 0);
+
+		MPaperTray2.bind(commandBuffer);
+		DSPaperTray2.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MPaperTray2.indices.size()), 1, 0, 0, 0);
 
 		MSharpener.bind(commandBuffer);
 		DSSharpener.bind(commandBuffer, PMesh, 2, currentImage);
@@ -430,31 +460,50 @@ class ProjectTSP : public BaseProject {
 		DSTSP.map(currentImage, &uboTSP, sizeof(uboTSP), 0);
 
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
-		uboClock.mvpMat = ViewPrj * World;
+		uboClock.mvpMat = ViewPrj * World *
+							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
 
+		uboChair.amb = 1.0f; uboChair.gamma = 180.0f; uboChair.sColor = glm::vec3(1.0f);
+		uboChair.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(-3.25f, 0.4f, 0.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(90.0f), glm::vec3(1, 0, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
+		uboChair.mMat = World;
+		uboChair.nMat = glm::inverse(glm::transpose(World));
+		DSChair.map(currentImage, &uboChair, sizeof(uboChair), 0);
+
 		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
-		uboPainting.mvpMat = ViewPrj * World;
+		uboPainting.mvpMat = ViewPrj * World *
+							(glm::translate(glm::mat4(1.0), glm::vec3(-4.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPainting.mMat = World;
 		uboPainting.nMat = glm::inverse(glm::transpose(World));
 		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
 
-		uboPaperTray.amb = 1.0f; uboPaperTray.gamma = 180.0f; uboPaperTray.sColor = glm::vec3(1.0f);
-		uboPaperTray.mvpMat = ViewPrj * World;
-		uboPaperTray.mMat = World;
-		uboPaperTray.nMat = glm::inverse(glm::transpose(World));
-		DSPaperTray.map(currentImage, &uboPaperTray, sizeof(uboPaperTray), 0);
+		uboPaperTray1.amb = 1.0f; uboPaperTray1.gamma = 180.0f; uboPaperTray1.sColor = glm::vec3(1.0f);
+		uboPaperTray1.mvpMat = ViewPrj * World *
+							(glm::translate(glm::mat4(1.0), glm::vec3(-1.5f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+		uboPaperTray1.mMat = World;
+		uboPaperTray1.nMat = glm::inverse(glm::transpose(World));
+		DSPaperTray1.map(currentImage, &uboPaperTray1, sizeof(uboPaperTray1), 0);
+
+		uboPaperTray2.amb = 1.0f; uboPaperTray2.gamma = 180.0f; uboPaperTray2.sColor = glm::vec3(1.0f);
+		uboPaperTray2.mvpMat = ViewPrj * World *
+							(glm::translate(glm::mat4(1.0), glm::vec3(-0.7f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+		uboPaperTray2.mMat = World;
+		uboPaperTray2.nMat = glm::inverse(glm::transpose(World));
+		DSPaperTray2.map(currentImage, &uboPaperTray2, sizeof(uboPaperTray2), 0);
 
 		uboSharpener.amb = 1.0f; uboSharpener.gamma = 180.0f; uboSharpener.sColor = glm::vec3(1.0f);
-		uboSharpener.mvpMat = ViewPrj * World;
+		uboSharpener.mvpMat = ViewPrj * World *
+							(glm::translate(glm::mat4(1.0), glm::vec3(-3.0f, 2.2f, -2.0f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboSharpener.mMat = World;
 		uboSharpener.nMat = glm::inverse(glm::transpose(World));
 		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
 
 		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
-		uboComputer.mvpMat = ViewPrj * World * glm::translate(glm::mat4(1.0), glm::vec3(-3.0f, 3.0f, 0.0f));
+		uboComputer.mvpMat = ViewPrj * World * 
+							( glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
 		uboComputer.mMat = World;
 		uboComputer.nMat = glm::inverse(glm::transpose(World));
 		DSComputer.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
@@ -481,7 +530,7 @@ class ProjectTSP : public BaseProject {
 		const float camHeight = 1.25;
 		const float camDist = 1.5;
 		// Height limits
-		const float highPos = 3.0f;
+		const float highPos = 2.5f;
 		const float lowPos = 1.0f;
 		// Camera Pitch limits
 		const float minPitch = glm::radians(-60.0f);
