@@ -415,7 +415,7 @@ class ProjectTSP : public BaseProject {
 		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
 
 		// SPOT UBO
-		glm::vec3 lampPos = glm::vec3(4.5f, 5.0f, -2.5f); // Position of the lamp object
+		glm::vec3 lampPos = glm::vec3(4.5f, 4.1f, -2.5f); // Position of the lamp object
 		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 1.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
@@ -460,10 +460,13 @@ class ProjectTSP : public BaseProject {
 		DSComputer.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
 
 		uboLamp.amb = 1.0f; uboLamp.gamma = 180.0f; uboLamp.sColor = glm::vec3(1.0f);
-		uboLamp.mvpMat = ViewPrj * World * glm::translate(glm::mat4(1.0), lampPos);
+		uboLamp.mvpMat = ViewPrj * World * 
+						( glm::translate(glm::mat4(1.0), lampPos) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.5, 2.5, 2.5)));
 		uboLamp.mMat = World;
 		uboLamp.nMat = glm::inverse(glm::transpose(World));
 		DSLamp.map(currentImage, &uboLamp, sizeof(uboLamp), 0);
+
+		// Scale, rotate, translate
 		
 	}
 	
