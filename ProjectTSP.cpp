@@ -178,7 +178,7 @@ class ProjectTSP : public BaseProject {
 		//PProcedural.init(this, &VTODO, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		MTSP.init(this, &VMesh, "models/Room/TheStanleyParable.obj", OBJ);
+		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev6.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
 		MPaperTray.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
@@ -187,7 +187,7 @@ class ProjectTSP : public BaseProject {
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
 
 		TClock.init(this, "textures/TexturesCity.png");
-		TTSP.init(this, "textures/TexturesCity.png");
+		TTSP.init(this, "textures/RoomTexture2.png");
 		TClock.init(this, "textures/TexturesCity.png");
 		TPainting.init(this, "textures/TexturesCity.png");
 		TPaperTray.init(this, "textures/TexturesCity.png");
