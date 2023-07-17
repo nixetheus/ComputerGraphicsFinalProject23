@@ -178,7 +178,7 @@ class ProjectTSP : public BaseProject {
 		//PProcedural.init(this, &VTODO, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev6.obj", OBJ);
+		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev9.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
 		MChair.init(this, &VMesh, "models/Room/Objects/Chair2.obj", OBJ);
 		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
@@ -512,7 +512,7 @@ class ProjectTSP : public BaseProject {
 
 		uboSharpener.amb = 1.0f; uboSharpener.gamma = 180.0f; uboSharpener.sColor = glm::vec3(1.0f);
 		uboSharpener.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.1f, -2.2f)) * glm::rotate(glm::mat4(1.0), glm::radians(-70.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(1.5f, 2.1f, -2.1f)) * glm::rotate(glm::mat4(1.0), glm::radians(-115.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboSharpener.mMat = World;
 		uboSharpener.nMat = glm::inverse(glm::transpose(World));
 		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
@@ -533,7 +533,7 @@ class ProjectTSP : public BaseProject {
 
 		uboPencil.amb = 1.0f; uboPencil.gamma = 180.0f; uboPencil.sColor = glm::vec3(1.0f);
 		uboPencil.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(1.2f, 2.07f, -2.0f)) * glm::rotate(glm::mat4(1.0), glm::radians(-60.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
+			(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
 		uboPencil.mMat = World;
 		uboPencil.nMat = glm::inverse(glm::transpose(World));
 		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
