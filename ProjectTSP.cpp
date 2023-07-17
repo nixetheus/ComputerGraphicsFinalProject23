@@ -56,17 +56,17 @@ class ProjectTSP : public BaseProject {
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp;
+	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil;
 
-	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp;
+	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp, TPencil;
 	Texture TMeshEmit, TComputerEmit;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp;
+	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
@@ -180,7 +180,8 @@ class ProjectTSP : public BaseProject {
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev6.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
-		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
+		MChair.init(this, &VMesh, "models/Room/Objects/Chair2.obj", OBJ);
+		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
 		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
 		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
@@ -197,6 +198,7 @@ class ProjectTSP : public BaseProject {
 		TSharpener.init(this, "textures/TexturesCity.png");
 		TComputer.init(this, "textures/TexturesCity.png");
 		TLamp.init(this, "textures/TexturesCity.png");
+		TPencil.init(this, "textures/TexturesCity.png");
 
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
@@ -240,6 +242,12 @@ class ProjectTSP : public BaseProject {
 		DSChair.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TChair},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSPencil.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TPencil},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
@@ -293,6 +301,7 @@ class ProjectTSP : public BaseProject {
 		DSTSP.cleanup();
 		DSClock.cleanup();
 		DSChair.cleanup();
+		DSPencil.cleanup();
 		DSPainting.cleanup();
 		DSPaperTray1.cleanup();
 		DSPaperTray2.cleanup();
@@ -309,6 +318,7 @@ class ProjectTSP : public BaseProject {
 		MTSP.cleanup();
 		MClock.cleanup();
 		MChair.cleanup();
+		MPencil.cleanup();
 		MPainting.cleanup();
 		MPaperTray1.cleanup();
 		MPaperTray2.cleanup();
@@ -324,6 +334,7 @@ class ProjectTSP : public BaseProject {
 		TSharpener.cleanup();
 		TComputer.cleanup();
 		TLamp.cleanup();
+		TPencil.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
@@ -361,6 +372,11 @@ class ProjectTSP : public BaseProject {
 		DSChair.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MChair.indices.size()), 1, 0, 0, 0);
+
+		MPencil.bind(commandBuffer);
+		DSPencil.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MPencil.indices.size()), 1, 0, 0, 0);
 
 		MPainting.bind(commandBuffer);
 		DSPainting.bind(commandBuffer, PMesh, 2, currentImage);
@@ -468,14 +484,14 @@ class ProjectTSP : public BaseProject {
 
 		uboChair.amb = 1.0f; uboChair.gamma = 180.0f; uboChair.sColor = glm::vec3(1.0f);
 		uboChair.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(-3.25f, 0.4f, 0.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(90.0f), glm::vec3(1, 0, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
+			(glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.4f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
 		uboChair.mMat = World;
 		uboChair.nMat = glm::inverse(glm::transpose(World));
 		DSChair.map(currentImage, &uboChair, sizeof(uboChair), 0);
 
 		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
 		uboPainting.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-4.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(0.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPainting.mMat = World;
 		uboPainting.nMat = glm::inverse(glm::transpose(World));
 		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
@@ -496,7 +512,7 @@ class ProjectTSP : public BaseProject {
 
 		uboSharpener.amb = 1.0f; uboSharpener.gamma = 180.0f; uboSharpener.sColor = glm::vec3(1.0f);
 		uboSharpener.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-3.0f, 2.2f, -2.0f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.1f, -2.2f)) * glm::rotate(glm::mat4(1.0), glm::radians(-70.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboSharpener.mMat = World;
 		uboSharpener.nMat = glm::inverse(glm::transpose(World));
 		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
@@ -514,6 +530,13 @@ class ProjectTSP : public BaseProject {
 		uboLamp.mMat = World;
 		uboLamp.nMat = glm::inverse(glm::transpose(World));
 		DSLamp.map(currentImage, &uboLamp, sizeof(uboLamp), 0);
+
+		uboPencil.amb = 1.0f; uboPencil.gamma = 180.0f; uboPencil.sColor = glm::vec3(1.0f);
+		uboPencil.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(1.2f, 2.07f, -2.0f)) * glm::rotate(glm::mat4(1.0), glm::radians(-60.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
+		uboPencil.mMat = World;
+		uboPencil.nMat = glm::inverse(glm::transpose(World));
+		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
 
 		// Scale, rotate, translate
 		
