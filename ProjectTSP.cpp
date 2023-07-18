@@ -128,11 +128,9 @@ class ProjectTSP : public BaseProject {
 			{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}   // Emission Texture
 			});
 
-		// TODO
 		DSLProcedural.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},          // Mesh Ubo
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},  // Mesh Texture
-			{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}   // Emission Texture
 			});
 
 		// Vertex descriptors
@@ -177,7 +175,7 @@ class ProjectTSP : public BaseProject {
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on...
 		PMesh.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
-		PProcedural.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });  // TODO: change shaders
+		PProcedural.init(this, &VMesh, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });  // TODO: change shaders
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev9.obj", OBJ);
@@ -297,7 +295,6 @@ class ProjectTSP : public BaseProject {
 		DSProcedural.init(this, &DSLProcedural, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TProcedural},
-			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
 	}
