@@ -557,8 +557,7 @@ class ProjectTSP : public BaseProject {
 
 		// Procedrual
 		uboProcedural.amb = 1.0f; uboProcedural.gamma = 180.0f; uboProcedural.sColor = glm::vec3(1.0f);
-		uboProcedural.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
+		uboProcedural.mvpMat = ViewPrj * World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.35f, 2.23f, -2.25f)));
 		uboProcedural.mMat = World;
 		uboProcedural.nMat = glm::inverse(glm::transpose(World));
 		DSProcedural.map(currentImage, &uboProcedural, sizeof(uboProcedural), 0);
