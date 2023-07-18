@@ -56,17 +56,17 @@ class ProjectTSP : public BaseProject {
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil;
+	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil, MProcedural;
 
-	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp, TPencil;
+	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp, TPencil, TProcedural;
 	Texture TMeshEmit, TComputerEmit;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil, DSProcedural;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil;
+	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil, uboProcedural;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
@@ -92,9 +92,9 @@ class ProjectTSP : public BaseProject {
 		initialBackgroundColor = {0.0f, 0.6f, 0.8f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 20;
-		texturesInPool = 20;
-		setsInPool = 20;
+		uniformBlocksInPool = 30;
+		texturesInPool = 30;
+		setsInPool = 30;
 		
 		Ar = 4.0f / 3.0f;
 	}
@@ -131,6 +131,8 @@ class ProjectTSP : public BaseProject {
 		// TODO
 		DSLProcedural.init(this, {
 			{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},          // Mesh Ubo
+			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},  // Mesh Texture
+			{2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}   // Emission Texture
 			});
 
 		// Vertex descriptors
@@ -175,7 +177,7 @@ class ProjectTSP : public BaseProject {
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on...
 		PMesh.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
-		//PProcedural.init(this, &VTODO, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
+		PProcedural.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });  // TODO: change shaders
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev9.obj", OBJ);
@@ -189,6 +191,10 @@ class ProjectTSP : public BaseProject {
 		MComputer.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
 
+		// Procedural
+		createProcedural(MProcedural.vertices, MProcedural.indices);
+		MProcedural.initMesh(this, &VMesh);
+
 		TClock.init(this, "textures/TexturesCity.png");
 		TChair.init(this, "textures/TexturesCity.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
@@ -199,6 +205,7 @@ class ProjectTSP : public BaseProject {
 		TComputer.init(this, "textures/TexturesCity.png");
 		TLamp.init(this, "textures/TexturesCity.png");
 		TPencil.init(this, "textures/TexturesCity.png");
+		TProcedural.init(this, "textures/TexturesCity.png");
 
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
@@ -217,7 +224,7 @@ class ProjectTSP : public BaseProject {
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
 		PMesh.create();
-		// PProcedural.create();
+		PProcedural.create();
 
 		DSGubo.init(this, &DSLGubo, {
 			{0, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
@@ -287,6 +294,11 @@ class ProjectTSP : public BaseProject {
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
+		DSProcedural.init(this, &DSLProcedural, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TProcedural},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
 
 	}
 
@@ -294,7 +306,7 @@ class ProjectTSP : public BaseProject {
 	void pipelinesAndDescriptorSetsCleanup() {
 
 		PMesh.cleanup();
-		//PProcedural.cleanup();
+		PProcedural.cleanup();
 
 		DSGubo.cleanup();
 		DSSpotLight.cleanup();
@@ -308,6 +320,7 @@ class ProjectTSP : public BaseProject {
 		DSSharpener.cleanup();
 		DSComputer.cleanup();
 		DSLamp.cleanup();
+		DSProcedural.cleanup();
 
 	}
 
@@ -325,6 +338,7 @@ class ProjectTSP : public BaseProject {
 		MSharpener.cleanup();
 		MComputer.cleanup();
 		MLamp.cleanup();
+		MProcedural.cleanup();
 
 		TTSP.cleanup();
 		TClock.cleanup();
@@ -335,6 +349,7 @@ class ProjectTSP : public BaseProject {
 		TComputer.cleanup();
 		TLamp.cleanup();
 		TPencil.cleanup();
+		TProcedural.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
@@ -342,7 +357,7 @@ class ProjectTSP : public BaseProject {
 		DSLProcedural.cleanup();
 
 		PMesh.destroy();
-		//PProcedural.destroy();
+		PProcedural.destroy();
 	}
 	
 	// Here it is the creation of the command buffer:
@@ -353,8 +368,8 @@ class ProjectTSP : public BaseProject {
 		DSGubo.bind(commandBuffer, PMesh, 0, currentImage);
 		DSSpotLight.bind(commandBuffer, PMesh, 1, currentImage);
 
-		//DSGubo.bind(commandBuffer, PProcedural, 0, currentImage);
-		//DSSpotLight.bind(commandBuffer, PProcedural, 1, currentImage);
+		DSGubo.bind(commandBuffer, PProcedural, 0, currentImage);
+		DSSpotLight.bind(commandBuffer, PProcedural, 1, currentImage);
 
 		PMesh.bind(commandBuffer);
 
@@ -408,7 +423,12 @@ class ProjectTSP : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MLamp.indices.size()), 1, 0, 0, 0);
 
-		//PProcedural.bind(commandBuffer);
+		PProcedural.bind(commandBuffer);
+
+		MProcedural.bind(commandBuffer);
+		DSProcedural.bind(commandBuffer, PProcedural, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MProcedural.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Here is where you update the uniforms.
@@ -538,7 +558,13 @@ class ProjectTSP : public BaseProject {
 		uboPencil.nMat = glm::inverse(glm::transpose(World));
 		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
 
-		// Scale, rotate, translate
+		// Procedrual
+		uboProcedural.amb = 1.0f; uboProcedural.gamma = 180.0f; uboProcedural.sColor = glm::vec3(1.0f);
+		uboProcedural.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
+		uboProcedural.mMat = World;
+		uboProcedural.nMat = glm::inverse(glm::transpose(World));
+		DSProcedural.map(currentImage, &uboProcedural, sizeof(uboProcedural), 0);
 		
 	}
 	
@@ -624,7 +650,12 @@ class ProjectTSP : public BaseProject {
 
 		ViewPrj = Prj * World;
 	}
+
+	void createProcedural(std::vector<VertexMesh>& vDef, std::vector<uint32_t>& vIdx);
 };
+
+
+#include "Procedural.hpp"
 
 
 // This is the main: probably you do not need to touch this!
