@@ -5,35 +5,15 @@
 #define M_PI 3.141595f
 void ProjectTSP::createProcedural(std::vector<VertexMesh>& vDef, std::vector<uint32_t>& vIdx) {
 
-	int numVerticalCuts = 1000;
-	int numHorizontalCuts = 1000;
-	double thetaStep = M_PI / numVerticalCuts;
-	double phiStep = 2 * M_PI / numHorizontalCuts;
+	// The primitive built here is a box centered in the origin, with proportions respecting the texture.
 
-	for (int i = 0; i < numVerticalCuts; i++) {
+	// The procedure fills array vPos with the positions of the vertices and of the normal vectors of the mesh
+	vDef.push_back({{0,0,0}, {0,0,1}, {0,0}});	// vertex 0 - Position, Normal and uv
+	vDef.push_back({{1,0,0}, {0,0,1}, {1,0}});	// vertex 1 - Position and Normal
+	vDef.push_back({{0,1,0}, {0,0,1}, {0,1}});	// vertex 2 - Position and Normal
+	vDef.push_back({{1,1,0}, {0,0,1}, {1,1}});// vertex 3 - Position and Normal
 
-		double theta = i * thetaStep;
-		for (int j = 0; j < numHorizontalCuts; j++) {
-
-			double phi = j * phiStep;
-			double x = sin(theta) * cos(phi);
-			double z = sin(theta) * sin(phi);
-			double y = cos(theta);
-
-			vDef.push_back({ {x, y, z}, {x, y, z}, {(atan2(z, x) + M_PI) / (2 * M_PI), acos(y) / M_PI} });
-
-			int circleEnd = 0;
-			if (j % numHorizontalCuts == 0) circleEnd = numHorizontalCuts;
-
-			// First triangle
-			vIdx.push_back(i * numHorizontalCuts + j);
-			vIdx.push_back((i + 1) * numHorizontalCuts + j);
-			vIdx.push_back((i + 1) * numHorizontalCuts + j - 1 + circleEnd);
-
-			// Second triangle
-			vIdx.push_back(i * numHorizontalCuts + j);
-			vIdx.push_back(i * numHorizontalCuts + j - 1 + circleEnd);
-			vIdx.push_back((i + 1) * numHorizontalCuts + j - 1 + circleEnd);
-		}
-	}
+	// The procedures also fill the array vIdx with the indices of the vertices of the triangles
+	vIdx.push_back(0); vIdx.push_back(1); vIdx.push_back(2);	// First triangle
+	vIdx.push_back(1); vIdx.push_back(2); vIdx.push_back(3);	// Second triangle
 }
