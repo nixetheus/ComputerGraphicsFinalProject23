@@ -58,7 +58,7 @@ class ProjectTSP : public BaseProject {
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil, MProcedural;
 
-	Texture TTSP, TClock, TChair, TPainting, TPaperTray, TSharpener, TComputer, TLamp, TPencil, TProcedural;
+	Texture TTSP, TClock, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TComputer, TLamp, TPencil, TProcedural;
 	Texture TMeshEmit, TComputerEmit;
 
 	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil, DSProcedural;
@@ -183,8 +183,8 @@ class ProjectTSP : public BaseProject {
 		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
 		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
-		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
-		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
+		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray1.obj", OBJ);
+		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray2.obj", OBJ);
 		MSharpener.init(this, &VMesh, "models/Room/Objects/Sharpener.obj", OBJ);
 		MComputer.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
@@ -198,12 +198,13 @@ class ProjectTSP : public BaseProject {
 		TTSP.init(this, "textures/RoomTexture2.png");
 		//TClock.init(this, "textures/TexturesCity.png");
 		TPainting.init(this, "textures/TexturesCity.png");
-		TPaperTray.init(this, "textures/TexturesCity.png");
+		TPaperTray1.init(this, "textures/PaperTray1.png");
+		TPaperTray2.init(this, "textures/PaperTray2.png");
 		TSharpener.init(this, "textures/TexturesCity.png");
 		TComputer.init(this, "textures/TexturesCity.png");
-		TLamp.init(this, "textures/TexturesCity.png");
+		TLamp.init(this, "textures/steel.jpg");
 		TPencil.init(this, "textures/TexturesCity.png");
-		TProcedural.init(this, "textures/TexturesCity.png");
+		TProcedural.init(this, "textures/Mug.png");
 
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
@@ -264,13 +265,13 @@ class ProjectTSP : public BaseProject {
 
 		DSPaperTray1.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
-			{1, TEXTURE, 0, &TPaperTray},
+			{1, TEXTURE, 0, &TPaperTray1},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
 		DSPaperTray2.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
-			{1, TEXTURE, 0, &TPaperTray},
+			{1, TEXTURE, 0, &TPaperTray2},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
@@ -341,7 +342,8 @@ class ProjectTSP : public BaseProject {
 		TClock.cleanup();
 		TChair.cleanup();
 		TPainting.cleanup();
-		TPaperTray.cleanup();
+		TPaperTray1.cleanup();
+		TPaperTray2.cleanup();
 		TSharpener.cleanup();
 		TComputer.cleanup();
 		TLamp.cleanup();
@@ -501,7 +503,7 @@ class ProjectTSP : public BaseProject {
 
 		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(1.0f);
 		uboChair.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.4f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
+			(glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.6f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
 		uboChair.mMat = World;
 		uboChair.nMat = glm::inverse(glm::transpose(World));
 		DSChair.map(currentImage, &uboChair, sizeof(uboChair), 0);
