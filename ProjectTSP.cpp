@@ -180,7 +180,7 @@ class ProjectTSP : public BaseProject {
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
-		MChair.init(this, &VMesh, "models/Room/Objects/Chair2.obj", OBJ);
+		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
 		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
 		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray.obj", OBJ);
@@ -193,8 +193,8 @@ class ProjectTSP : public BaseProject {
 		createProcedural(MProcedural.vertices, MProcedural.indices);
 		MProcedural.initMesh(this, &VMesh);
 
-		TClock.init(this, "textures/TexturesCity.png");
-		TChair.init(this, "textures/TexturesCity.png");
+		TClock.init(this, "textures/clock.png");
+		TChair.init(this, "textures/ChairTexture.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
 		//TClock.init(this, "textures/TexturesCity.png");
 		TPainting.init(this, "textures/TexturesCity.png");
@@ -494,12 +494,12 @@ class ProjectTSP : public BaseProject {
 
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
 		uboClock.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
 
-		uboChair.amb = 1.0f; uboChair.gamma = 180.0f; uboChair.sColor = glm::vec3(1.0f);
+		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(1.0f);
 		uboChair.mvpMat = ViewPrj * World *
 			(glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.4f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
 		uboChair.mMat = World;
