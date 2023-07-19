@@ -178,7 +178,7 @@ class ProjectTSP : public BaseProject {
 		PProcedural.init(this, &VMesh, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });  // TODO: change shaders
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev9.obj", OBJ);
+		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
 		MChair.init(this, &VMesh, "models/Room/Objects/Chair2.obj", OBJ);
 		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
