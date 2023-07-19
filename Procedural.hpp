@@ -21,12 +21,12 @@ void ProjectTSP::createProcedural(std::vector<VertexMesh>& vDef, std::vector<uin
 
         // Top Vertexes
         y = 1 * height;
-        vDef.push_back({ {x, y, z}, {x, 0, z}, {0,0} }); // EXTERNAL NORMAL
+        vDef.push_back({ {x, y, z}, {x, 0, z}, {-i / (float)definition, 0} }); // EXTERNAL NORMAL
         vDef.push_back({ {x, y, z}, {0.0f, 1.0f, 0.0f}, {0,0} }); // TOP NORMAL
 
         // Bottom Vertexes
         y = -1 * height;
-        vDef.push_back({ {x, y, z}, {x, 0, z}, {0,0} }); // EXTERNAL NORMAL
+        vDef.push_back({ {x, y, z}, {x, 0, z}, {-i / (float)definition, 0.65f} }); // EXTERNAL NORMAL
         vDef.push_back({ {x, y, z}, {0.0f, -1.0f, 0.0f}, {0,0} }); // BOTTOM NORMAL
 
         // Triangles
