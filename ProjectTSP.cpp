@@ -200,7 +200,7 @@ class ProjectTSP : public BaseProject {
 		TPainting.init(this, "textures/TexturesCity.png");
 		TPaperTray1.init(this, "textures/PaperTray1.png");
 		TPaperTray2.init(this, "textures/PaperTray2.png");
-		TSharpener.init(this, "textures/TexturesCity.png");
+		TSharpener.init(this, "textures/Sharpener.png");
 		TComputer.init(this, "textures/TexturesCity.png");
 		TLamp.init(this, "textures/steel.jpg");
 		TPencil.init(this, "textures/TexturesCity.png");
@@ -481,7 +481,7 @@ class ProjectTSP : public BaseProject {
 
 		// SPOT UBO
 		glm::vec3 lampPos = glm::vec3(4.5f, 4.1f, -2.5f); // Position of the lamp object
-		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 1.0f));
+		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 0.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
 		uboSpot.eyePos = camPos;
@@ -496,7 +496,7 @@ class ProjectTSP : public BaseProject {
 
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
 		uboClock.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
