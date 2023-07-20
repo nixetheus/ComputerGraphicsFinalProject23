@@ -206,7 +206,7 @@ class ProjectTSP : public BaseProject {
 		TChair.init(this, "textures/ChairTexture.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
 		//TClock.init(this, "textures/TexturesCity.png");
-		TPainting.init(this, "textures/TexturesCity.png");
+		TPainting.init(this, "textures/Painting.png");
 		TPaperTray1.init(this, "textures/PaperTray1.png");
 		TPaperTray2.init(this, "textures/PaperTray2.png");
 		TSharpener.init(this, "textures/Sharpener.png");
@@ -562,7 +562,7 @@ class ProjectTSP : public BaseProject {
 
 		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
 		uboPainting.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(0.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+							(glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPainting.mMat = World;
 		uboPainting.nMat = glm::inverse(glm::transpose(World));
 		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
