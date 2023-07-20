@@ -56,17 +56,17 @@ class ProjectTSP : public BaseProject {
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil, MProcedural;
+	Model<VertexMesh> MTSP, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil, MProcedural;
 
-	Texture TTSP, TClock, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TComputer, TLamp, TPencil, TProcedural;
+	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TComputer, TLamp, TPencil, TProcedural;
 	Texture TMeshEmit, TComputerEmit;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil, DSProcedural;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil, DSProcedural;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil, uboProcedural;
+	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil, uboProcedural;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
@@ -180,6 +180,7 @@ class ProjectTSP : public BaseProject {
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
+		MArm.init(this, &VMesh, "models/Room/Objects/ClockArm.obj", OBJ);
 		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
 		MPencil.init(this, &VMesh, "models/Room/Objects/Pencil.obj", OBJ);
 		MPainting.init(this, &VMesh, "models/Room/Objects/Painting.obj", OBJ);
@@ -194,6 +195,7 @@ class ProjectTSP : public BaseProject {
 		MProcedural.initMesh(this, &VMesh);
 
 		TClock.init(this, "textures/clock.png");
+		TArm.init(this, "textures/PaperTray1.png");
 		TChair.init(this, "textures/ChairTexture.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
 		//TClock.init(this, "textures/TexturesCity.png");
@@ -242,6 +244,12 @@ class ProjectTSP : public BaseProject {
 		DSClock.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TClock},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSArm.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TArm},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
@@ -310,6 +318,7 @@ class ProjectTSP : public BaseProject {
 		DSSpotLight.cleanup();
 		DSTSP.cleanup();
 		DSClock.cleanup();
+		DSArm.cleanup();
 		DSChair.cleanup();
 		DSPencil.cleanup();
 		DSPainting.cleanup();
@@ -328,6 +337,7 @@ class ProjectTSP : public BaseProject {
 
 		MTSP.cleanup();
 		MClock.cleanup();
+		MArm.cleanup();
 		MChair.cleanup();
 		MPencil.cleanup();
 		MPainting.cleanup();
@@ -340,6 +350,7 @@ class ProjectTSP : public BaseProject {
 
 		TTSP.cleanup();
 		TClock.cleanup();
+		TArm.cleanup();
 		TChair.cleanup();
 		TPainting.cleanup();
 		TPaperTray1.cleanup();
@@ -381,6 +392,11 @@ class ProjectTSP : public BaseProject {
 		DSClock.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MClock.indices.size()), 1, 0, 0, 0);
+
+		MArm.bind(commandBuffer);
+		DSArm.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MArm.indices.size()), 1, 0, 0, 0);
 
 		MChair.bind(commandBuffer);
 		DSChair.bind(commandBuffer, PMesh, 2, currentImage);
@@ -429,6 +445,9 @@ class ProjectTSP : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MProcedural.indices.size()), 1, 0, 0, 0);
 	}
+
+	// Total Time Passed for Clock Arm
+	float totalSeconds = 0;
 
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
@@ -500,6 +519,14 @@ class ProjectTSP : public BaseProject {
 		uboClock.mMat = World;
 		uboClock.nMat = glm::inverse(glm::transpose(World));
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
+
+		float armRotation = (((int)totalSeconds % 60) / 60.0f) * 360;
+		uboArm.amb = 1.0f; uboArm.gamma = 180.0f; uboArm.sColor = glm::vec3(1.0f);
+		uboArm.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(-6.15f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(-armRotation), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(7, 7, 5)));
+		uboArm.mMat = World;
+		uboArm.nMat = glm::inverse(glm::transpose(World));
+		DSArm.map(currentImage, &uboArm, sizeof(uboArm), 0);
 
 		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(1.0f);
 		uboChair.mvpMat = ViewPrj * World *
@@ -599,6 +626,9 @@ class ProjectTSP : public BaseProject {
 
 		bool fire = false;
 		getSixAxis(deltaT, m, r, fire);
+
+		// Update time for clock
+		totalSeconds += deltaT;
 				
 		
 		/////////////////////////// WORLD ////////////////////////////
