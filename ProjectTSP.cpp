@@ -56,17 +56,21 @@ class ProjectTSP : public BaseProject {
 	Pipeline PMesh, PProcedural;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MComputer, MLamp, MPencil, MProcedural;
+	Model<VertexMesh> MTSP, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MLamp, MPencil, MProcedural;
+	Model<VertexMesh> MComputer1, MComputer2;
 
-	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TComputer, TLamp, TPencil, TProcedural;
+	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural;
+	Texture TComputer1, TComputer2;
 	Texture TMeshEmit, TComputerEmit;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSComputer, DSLamp, DSPencil, DSProcedural;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural;
+	DescriptorSet DSComputer1, DSComputer2;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboComputer, uboLamp, uboPencil, uboProcedural;
+	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboLamp, uboPencil, uboProcedural;
+	MeshUniformBlock uboComputer;
 	
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
@@ -187,8 +191,11 @@ class ProjectTSP : public BaseProject {
 		MPaperTray1.init(this, &VMesh, "models/Room/Objects/PaperTray1.obj", OBJ);
 		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray2.obj", OBJ);
 		MSharpener.init(this, &VMesh, "models/Room/Objects/Sharpener.obj", OBJ);
-		MComputer.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
+
+		// Computers
+		MComputer1.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
+		MComputer2.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 
 		// Procedural
 		createProcedural(MProcedural.vertices, MProcedural.indices);
@@ -203,10 +210,13 @@ class ProjectTSP : public BaseProject {
 		TPaperTray1.init(this, "textures/PaperTray1.png");
 		TPaperTray2.init(this, "textures/PaperTray2.png");
 		TSharpener.init(this, "textures/Sharpener.png");
-		TComputer.init(this, "textures/TexturesCity.png");
 		TLamp.init(this, "textures/steel.jpg");
 		TPencil.init(this, "textures/TexturesCity.png");
 		TProcedural.init(this, "textures/Mug.png");
+
+		// Computers
+		TComputer1.init(this, "textures/TexturesCity.png");
+		TComputer2.init(this, "textures/PaperTray1.png");
 
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
@@ -289,16 +299,22 @@ class ProjectTSP : public BaseProject {
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
-		DSComputer.init(this, &DSLMesh, {
-			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
-			{1, TEXTURE, 0, &TComputer},
-			{2, TEXTURE, 0, &TComputerEmit},
-			});
-
 		DSLamp.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TLamp},
 			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSComputer1.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TComputer1},
+			{2, TEXTURE, 0, &TComputerEmit},
+			});
+
+		DSComputer2.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TComputer2},
+			{2, TEXTURE, 0, &TComputerEmit},
 			});
 
 		DSProcedural.init(this, &DSLProcedural, {
@@ -325,7 +341,8 @@ class ProjectTSP : public BaseProject {
 		DSPaperTray1.cleanup();
 		DSPaperTray2.cleanup();
 		DSSharpener.cleanup();
-		DSComputer.cleanup();
+		DSComputer1.cleanup();
+		DSComputer2.cleanup();
 		DSLamp.cleanup();
 		DSProcedural.cleanup();
 
@@ -344,7 +361,8 @@ class ProjectTSP : public BaseProject {
 		MPaperTray1.cleanup();
 		MPaperTray2.cleanup();
 		MSharpener.cleanup();
-		MComputer.cleanup();
+		MComputer1.cleanup();
+		MComputer2.cleanup();
 		MLamp.cleanup();
 		MProcedural.cleanup();
 
@@ -356,7 +374,8 @@ class ProjectTSP : public BaseProject {
 		TPaperTray1.cleanup();
 		TPaperTray2.cleanup();
 		TSharpener.cleanup();
-		TComputer.cleanup();
+		TComputer1.cleanup();
+		TComputer2.cleanup();
 		TLamp.cleanup();
 		TPencil.cleanup();
 		TProcedural.cleanup();
@@ -428,10 +447,15 @@ class ProjectTSP : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MSharpener.indices.size()), 1, 0, 0, 0);
 
-		MComputer.bind(commandBuffer);
-		DSComputer.bind(commandBuffer, PMesh, 2, currentImage);
+		MComputer1.bind(commandBuffer);
+		DSComputer1.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
-			static_cast<uint32_t>(MComputer.indices.size()), 1, 0, 0, 0);
+			static_cast<uint32_t>(MComputer1.indices.size()), 1, 0, 0, 0);
+
+		MComputer2.bind(commandBuffer);
+		DSComputer2.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MComputer2.indices.size()), 1, 0, 0, 0);
 
 		MLamp.bind(commandBuffer);
 		DSLamp.bind(commandBuffer, PMesh, 2, currentImage);
@@ -447,6 +471,7 @@ class ProjectTSP : public BaseProject {
 	}
 
 	// Total Time Passed for Clock Arm
+	int computerModel = 0;
 	float totalSeconds = 0;
 
 	// Here is where you update the uniforms.
@@ -563,13 +588,6 @@ class ProjectTSP : public BaseProject {
 		uboSharpener.nMat = glm::inverse(glm::transpose(World));
 		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
 
-		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
-		uboComputer.mvpMat = ViewPrj * World * 
-							( glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
-		uboComputer.mMat = World;
-		uboComputer.nMat = glm::inverse(glm::transpose(World));
-		DSComputer.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
-
 		uboLamp.amb = 1.0f; uboLamp.gamma = 180.0f; uboLamp.sColor = glm::vec3(1.0f);
 		uboLamp.mvpMat = ViewPrj * World * 
 						( glm::translate(glm::mat4(1.0), lampPos) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.5, 2.5, 2.5)));
@@ -583,6 +601,25 @@ class ProjectTSP : public BaseProject {
 		uboPencil.mMat = World;
 		uboPencil.nMat = glm::inverse(glm::transpose(World));
 		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
+
+		// Computer Models
+		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
+		uboComputer.mMat = World;
+		uboComputer.nMat = glm::inverse(glm::transpose(World));
+
+		glm::vec3 scaleComputer1, scaleComputer2;
+		if (computerModel == 0) scaleComputer1 = glm::vec3(2); else scaleComputer1 = glm::vec3(0);
+		if (computerModel == 1) scaleComputer2 = glm::vec3(2); else scaleComputer2 = glm::vec3(0);
+
+		// Computer 1
+		uboComputer.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer1));
+		DSComputer1.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
+
+		// Computer 2
+		uboComputer.mvpMat = ViewPrj * World *
+			(glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer2));
+		DSComputer2.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
 
 		// Procedrual
 		uboProcedural.amb = 1.0f; uboProcedural.gamma = 180.0f; uboProcedural.sColor = glm::vec3(1.0f);
@@ -629,6 +666,24 @@ class ProjectTSP : public BaseProject {
 
 		// Update time for clock
 		totalSeconds += deltaT;
+
+		// Change PC Model to simulate changing screen
+		static int curDebounce = 0;
+		static float debounce = false;
+		if (glfwGetKey(window, GLFW_KEY_L)) {
+			if (!debounce) {
+				debounce = true;
+				curDebounce = GLFW_KEY_L;
+				computerModel += 1;
+				computerModel %= 2;
+			}
+		}
+		else {
+			if ((curDebounce == GLFW_KEY_L) && debounce) {
+				debounce = false;
+				curDebounce = 0;
+			}
+		}
 				
 		
 		/////////////////////////// WORLD ////////////////////////////
