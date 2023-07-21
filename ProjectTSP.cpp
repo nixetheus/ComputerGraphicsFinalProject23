@@ -29,6 +29,11 @@ struct MeshUniformBlock {
 	alignas(16) glm::mat4 nMat;
 };
 
+// Overtlay Data
+struct OverlayUniformBlock {
+	alignas(4) float visible;
+};
+
 // The vertices data structures
 // Mesh structure
 struct VertexMesh {
@@ -37,9 +42,13 @@ struct VertexMesh {
 	glm::vec2 UV;
 };
 
+struct VertexOverlay {
+	glm::vec2 pos;
+	glm::vec2 UV;
+};
+
 
 class ProjectTSP;
-//void GameLogic(ProjectTSP *A, float Ar, glm::mat4 &ViewPrj, glm::mat4 &World); ?
 
 // MAIN ! 
 class ProjectTSP : public BaseProject {
@@ -47,23 +56,26 @@ class ProjectTSP : public BaseProject {
 	// Here you list all the Vulkan objects you need:
 	
 	// Descriptor Layouts [what will be passed to the shaders]
-	DescriptorSetLayout DSLGubo, DSLSpotLight, DSLMesh, DSLProcedural;
+	DescriptorSetLayout DSLGubo, DSLSpotLight, DSLMesh, DSLProcedural, DSLOverlay;
 
 	// Vertex formats
 	VertexDescriptor VMesh;
+	VertexDescriptor VOverlay;
 
 	// Pipelines [Shader couples]
 	Pipeline PMesh, PProcedural;
+	Pipeline POverlay;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	Model<VertexMesh> MTSP, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MLamp, MPencil, MProcedural;
 	Model<VertexMesh> MComputer1, MComputer2;
+	Model<VertexOverlay> MTitle;
 
-	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural;
+	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural, TTitle;
 	Texture TComputer1, TComputer2;
 	Texture TMeshEmit, TComputerEmit1, TComputerEmit2;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural, DSTitle;
 	DescriptorSet DSComputer1, DSComputer2;
 
 	// C++ storage for uniform variables
@@ -71,6 +83,7 @@ class ProjectTSP : public BaseProject {
 	SpotUniformBufferObject uboSpot;
 	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboLamp, uboPencil, uboProcedural;
 	MeshUniformBlock uboComputer;
+	OverlayUniformBlock uboTitle;
 
 	/////////////////////////// PARAMETERS ///////////////////////////
 		// Camera FOV-y, Near Plane and Far Plane
@@ -149,6 +162,11 @@ class ProjectTSP : public BaseProject {
 			{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT},  // Mesh Texture
 			});
 
+		DSLOverlay.init(this, {
+					{0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_ALL_GRAPHICS},
+					{1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT}
+			});
+
 		// Vertex descriptors
 		VMesh.init(this, {
 			// this array contains the bindings
@@ -185,13 +203,25 @@ class ProjectTSP : public BaseProject {
 				{0, 2, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexMesh, UV),
 					   sizeof(glm::vec2), UV}
 			});
+
+		VOverlay.init(this, {
+				  {0, sizeof(VertexOverlay), VK_VERTEX_INPUT_RATE_VERTEX}
+			}, {
+			  {0, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, pos),
+					 sizeof(glm::vec2), OTHER},
+			  {0, 1, VK_FORMAT_R32G32_SFLOAT, offsetof(VertexOverlay, UV),
+					 sizeof(glm::vec2), UV}
+			});
 		
 
 		// Pipelines [Shader couples]
 		// The last array, is a vector of pointer to the layouts of the sets that will
 		// be used in this pipeline. The first element will be set 0, and so on...
 		PMesh.init(this, &VMesh, "shaders/MeshVert.spv", "shaders/MeshFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLMesh });
-		PProcedural.init(this, &VMesh, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });  // TODO: change shaders
+		PProcedural.init(this, &VMesh, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
+		POverlay.init(this, &VOverlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSLOverlay });
+		POverlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
+			VK_CULL_MODE_NONE, false);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
@@ -204,6 +234,12 @@ class ProjectTSP : public BaseProject {
 		MPaperTray2.init(this, &VMesh, "models/Room/Objects/PaperTray2.obj", OBJ);
 		MSharpener.init(this, &VMesh, "models/Room/Objects/Sharpener.obj", OBJ);
 		MLamp.init(this, &VMesh, "models/Room/Objects/Lamp.obj", OBJ);
+
+		// Title Overlay
+		MTitle.vertices = { {{-1.0f, -1.0f}, {0.0f, 0.0f}}, {{1.0f, -1.0f}, {1.0f, 0.0f}},
+						 {{ -1.0f, 1.0f}, {0.0f, 1.0f}}, {{ 1.0f, 1.0f}, {1.0f, 1.0f}} };
+		MTitle.indices = { 0, 2, 1, 1, 3, 2};
+		MTitle.initMesh(this, &VOverlay);
 
 		// Computers
 		MComputer1.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
@@ -225,6 +261,8 @@ class ProjectTSP : public BaseProject {
 		TPencil.init(this, "textures/TexturesCity.png");
 		TProcedural.init(this, "textures/Mug.png");
 
+		TTitle.init(this, "textures/Title.png");
+
 		// Computers
 		TComputer1.init(this, "textures/Computer1.png");
 		TComputer2.init(this, "textures/Computer2.png");
@@ -240,6 +278,7 @@ class ProjectTSP : public BaseProject {
 	void pipelinesAndDescriptorSetsInit() {
 		// This creates a new pipeline (with the current surface), using its shaders
 		PMesh.create();
+		POverlay.create();
 		PProcedural.create();
 
 		DSGubo.init(this, &DSLGubo, {
@@ -327,12 +366,18 @@ class ProjectTSP : public BaseProject {
 			{1, TEXTURE, 0, &TProcedural},
 			});
 
+		DSTitle.init(this, &DSLOverlay, {
+					{0, UNIFORM, sizeof(OverlayUniformBlock), nullptr},
+					{1, TEXTURE, 0, &TTitle}
+			});
+
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
 	void pipelinesAndDescriptorSetsCleanup() {
 
 		PMesh.cleanup();
+		POverlay.cleanup();
 		PProcedural.cleanup();
 
 		DSGubo.cleanup();
@@ -350,7 +395,7 @@ class ProjectTSP : public BaseProject {
 		DSComputer2.cleanup();
 		DSLamp.cleanup();
 		DSProcedural.cleanup();
-
+		DSTitle.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -370,6 +415,7 @@ class ProjectTSP : public BaseProject {
 		MComputer2.cleanup();
 		MLamp.cleanup();
 		MProcedural.cleanup();
+		MTitle.cleanup();
 
 		TTSP.cleanup();
 		TClock.cleanup();
@@ -387,14 +433,17 @@ class ProjectTSP : public BaseProject {
 		TMeshEmit.cleanup();
 		TComputerEmit1.cleanup();
 		TComputerEmit2.cleanup();
+		TTitle.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
 		DSLMesh.cleanup();
 		DSLProcedural.cleanup();
+		DSLOverlay.cleanup();
 
 		PMesh.destroy();
 		PProcedural.destroy();
+		POverlay.destroy();
 	}
 	
 	// Here it is the creation of the command buffer:
@@ -476,6 +525,12 @@ class ProjectTSP : public BaseProject {
 		DSProcedural.bind(commandBuffer, PProcedural, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MProcedural.indices.size()), 1, 0, 0, 0);
+
+		POverlay.bind(commandBuffer);
+		MTitle.bind(commandBuffer);
+		DSTitle.bind(commandBuffer, POverlay, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MTitle.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Total Time Passed for Clock Arm
@@ -506,7 +561,7 @@ class ProjectTSP : public BaseProject {
 
 		// SPOT UBO
 		glm::vec3 lampPos = glm::vec3(4.5f, 4.1f, -2.5f); // Position of the lamp object
-		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 0.0f));
+		uboSpot.lightDir = glm::mat3(World) * glm::normalize(glm::vec3(-3, -1, 0.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
 		uboSpot.eyePos = Pos;
@@ -609,6 +664,10 @@ class ProjectTSP : public BaseProject {
 		uboProcedural.mMat = World;
 		uboProcedural.nMat = glm::inverse(glm::transpose(World));
 		DSProcedural.map(currentImage, &uboProcedural, sizeof(uboProcedural), 0);
+
+		/* Map the uniform data block to the GPU */
+		uboTitle.visible = 1.0f;
+		DSTitle.map(currentImage, &uboTitle, sizeof(uboTitle), 0);
 		
 	}
 	
@@ -681,11 +740,6 @@ class ProjectTSP : public BaseProject {
 		// Set height position, low after F pressed, high after R pressed (F and R set m.y value to -1/+1, maybe change to SHIFT)
 		Pos.y = m.y == -1.0f ? lowPos : 
 					m.y == 1.0f ? highPos : Pos.y;
-
-
-		// std::cout << "X=" << Pos.x << "    Y="<< Pos.y << "    Z="<< Pos.z << std::endl;
-
-		//std::cout << Pos.x << ", " << Pos.y << ", " << Pos.z << ", " << Yaw << ", " << Pitch << ", " << Roll << "\n";
 
 		// Final world matrix computaiton
 		World = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0, 0, 1)) *
