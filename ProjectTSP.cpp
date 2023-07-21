@@ -71,20 +71,32 @@ class ProjectTSP : public BaseProject {
 	SpotUniformBufferObject uboSpot;
 	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboLamp, uboPencil, uboProcedural;
 	MeshUniformBlock uboComputer;
-	
+
+	/////////////////////////// PARAMETERS ///////////////////////////
+		// Camera FOV-y, Near Plane and Far Plane
+	const float FOVy = glm::radians(60.0f);
+	const float nearPlane = 0.1f;
+	const float farPlane = 100.f;
+	// Height limits
+	const float highPos = 5.0f;
+	const float lowPos = 1.5f;
+	// Camera Pitch limits
+	const float minPitch = glm::radians(-60.0f);
+	const float maxPitch = glm::radians(40.0f);
+	// Rotation and motion speed
+	const float ROT_SPEED = glm::radians(50.0f);
+	const float MOVE_SPEED = 3.0f;
+
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
 	float Ar;
 	glm::mat4 World;
 	glm::mat4 ViewPrj;
-	glm::vec3 cameraPos;
-	glm::vec3 Pos = glm::vec3(0,0,15);
-	float Yaw = glm::radians(0.0f);
-	float Pitch = glm::radians(0.0f);
+	//glm::vec3 cameraPos;
+	glm::vec3 Pos = glm::vec3(-3,0,0);
+	float Yaw = glm::radians(40.0f);
+	float Pitch = glm::radians(-40.0f);
 	float Roll = glm::radians(0.0f);
-	// TODO
-	int gameState;
-	float CamH, CamRadius, CamPitch, CamYaw;
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -222,13 +234,6 @@ class ProjectTSP : public BaseProject {
 		TMeshEmit.init(this, "textures/TexturesCity.png");
 		TComputerEmit.init(this, "textures/TexturesCity.png");
 
-		// TODO
-		// Init local variables
-		CamH = 1.0f;
-		CamRadius = 3.0f;
-		CamPitch = glm::radians(15.f);
-		CamYaw = glm::radians(30.f);
-		gameState = 0;
 	}
 	
 	// Here you create your pipelines and Descriptor Sets!
@@ -479,21 +484,6 @@ class ProjectTSP : public BaseProject {
 	void updateUniformBuffer(uint32_t currentImage) {
 		static bool debounce = false;
 		static int curDebounce = 0;
-//std::cout << xpos << " " << ypos << " " << m_dx << " " << m_dy << "\n";
-
-		/*/if (glfwGetKey(window, GLFW_KEY_SPACE)) {
-			if(!debounce) {
-				debounce = true;
-				curDebounce = GLFW_KEY_SPACE;
-				std::cout << "Scene : " << currScene << "\n";
-				RebuildPipeline();
-			}
-		} else {
-			if((curDebounce == GLFW_KEY_SPACE) && debounce) {
-				debounce = false;
-				curDebounce = 0;
-			}
-		}*/
 
 		if(glfwGetKey(window, GLFW_KEY_ESCAPE)) {
 			glfwSetWindowShouldClose(window, GL_TRUE);
@@ -502,25 +492,13 @@ class ProjectTSP : public BaseProject {
 		
 		GameLogic();
 
-		// updates global uniforms
-		const float FOVy = glm::radians(90.0f);
-		const float nearPlane = 0.1f;
-		const float farPlane = 100.0f;
-		const float rotSpeed = glm::radians(90.0f);
-		const float movSpeed = 1.0f;
-
-		glm::vec3 camTarget = glm::vec3(0, CamH, 0);
-		glm::vec3 camPos = camTarget +
-			CamRadius * glm::vec3(cos(CamPitch) * sin(CamYaw),
-				sin(CamPitch),
-				cos(CamPitch) * cos(CamYaw));
 
 		// FILL AND SET GLOBAL UNIFORMS
 		// GUBO
 		gubo.DlightDir = glm::normalize(glm::vec3(1, 1, 1));
 		gubo.DlightColor = glm::vec4(0.2f, 0.2f, 0.2f, 1);
 		gubo.AmbLightColor = glm::vec3(0.1f);
-		gubo.eyePos = camPos;
+		gubo.eyePos = Pos;
 		DSGubo.map(currentImage, &gubo, sizeof(gubo), 0);
 
 		// SPOT UBO
@@ -528,7 +506,7 @@ class ProjectTSP : public BaseProject {
 		uboSpot.lightDir = glm::normalize(glm::vec3(-3, -1, 0.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
-		uboSpot.eyePos = camPos;
+		uboSpot.eyePos = Pos;
 		DSSpotLight.map(currentImage, &uboSpot, sizeof(uboSpot), 0);
 
 		// FILL AND SET OBJECTS UNIFORMS
@@ -630,25 +608,11 @@ class ProjectTSP : public BaseProject {
 		
 	}
 	
+
+
 	void GameLogic() {
 
-		/////////////////////////// PARAMETERS ///////////////////////////
-		// Camera FOV-y, Near Plane and Far Plane
-		const float FOVy = glm::radians(45.0f);
-		const float nearPlane = 0.1f;
-		const float farPlane = 100.f;
-		// Camera target height and distance
-		const float camHeight = 1.25;
-		const float camDist = 1.5;
-		// Height limits
-		const float highPos = 2.5f;
-		const float lowPos = 1.0f;
-		// Camera Pitch limits
-		const float minPitch = glm::radians(-60.0f);
-		const float maxPitch = glm::radians(40.0f);
-		// Rotation and motion speed
-		const float ROT_SPEED = glm::radians(100.0f);
-		const float MOVE_SPEED = 3.0f;
+		
 
 		////////////////// Game Logic implementation //////////////////
 
@@ -731,7 +695,7 @@ class ProjectTSP : public BaseProject {
 		glm::mat4 Prj = glm::perspective(FOVy, Ar, nearPlane, farPlane);
 		Prj[1][1] *= -1;	// Given by the different Vulkan coordinate convention compared to GLM
 
-		ViewPrj = Prj * World;
+		ViewPrj = Prj;// * World;
 	}
 
 	void createProcedural(std::vector<VertexMesh>& vDef, std::vector<uint32_t>& vIdx);
