@@ -61,7 +61,7 @@ class ProjectTSP : public BaseProject {
 
 	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural;
 	Texture TComputer1, TComputer2;
-	Texture TMeshEmit, TComputerEmit;
+	Texture TMeshEmit, TComputerEmit1, TComputerEmit2;
 
 	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural;
 	DescriptorSet DSComputer1, DSComputer2;
@@ -217,7 +217,6 @@ class ProjectTSP : public BaseProject {
 		TArm.init(this, "textures/PaperTray1.png");
 		TChair.init(this, "textures/ChairTexture.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
-		//TClock.init(this, "textures/TexturesCity.png");
 		TPainting.init(this, "textures/Painting.png");
 		TPaperTray1.init(this, "textures/PaperTray1.png");
 		TPaperTray2.init(this, "textures/PaperTray2.png");
@@ -227,12 +226,13 @@ class ProjectTSP : public BaseProject {
 		TProcedural.init(this, "textures/Mug.png");
 
 		// Computers
-		TComputer1.init(this, "textures/TexturesCity.png");
-		TComputer2.init(this, "textures/PaperTray1.png");
+		TComputer1.init(this, "textures/Computer1.png");
+		TComputer2.init(this, "textures/Computer2.png");
 
 		// Emitting Textures
 		TMeshEmit.init(this, "textures/TexturesCity.png");
-		TComputerEmit.init(this, "textures/TexturesCity.png");
+		TComputerEmit1.init(this, "textures/ComputerEmit1.png");
+		TComputerEmit2.init(this, "textures/ComputerEmit2.png");
 
 	}
 	
@@ -313,13 +313,13 @@ class ProjectTSP : public BaseProject {
 		DSComputer1.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TComputer1},
-			{2, TEXTURE, 0, &TComputerEmit},
+			{2, TEXTURE, 0, &TComputerEmit1},
 			});
 
 		DSComputer2.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TComputer2},
-			{2, TEXTURE, 0, &TComputerEmit},
+			{2, TEXTURE, 0, &TComputerEmit2},
 			});
 
 		DSProcedural.init(this, &DSLProcedural, {
@@ -384,6 +384,9 @@ class ProjectTSP : public BaseProject {
 		TLamp.cleanup();
 		TPencil.cleanup();
 		TProcedural.cleanup();
+		TMeshEmit.cleanup();
+		TComputerEmit1.cleanup();
+		TComputerEmit2.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
@@ -585,9 +588,10 @@ class ProjectTSP : public BaseProject {
 		uboComputer.mMat = World;
 		uboComputer.nMat = glm::inverse(glm::transpose(World));
 
+		float computerFlesh = ((int)(totalSeconds * 2) % 2);
 		glm::vec3 scaleComputer1, scaleComputer2;
-		if (computerModel == 0) scaleComputer1 = glm::vec3(2); else scaleComputer1 = glm::vec3(0);
-		if (computerModel == 1) scaleComputer2 = glm::vec3(2); else scaleComputer2 = glm::vec3(0);
+		if (computerFlesh == 0) scaleComputer1 = glm::vec3(2); else scaleComputer1 = glm::vec3(0);
+		if (computerFlesh == 1) scaleComputer2 = glm::vec3(2); else scaleComputer2 = glm::vec3(0);
 
 		// Computer 1
 		uboComputer.mvpMat = ViewPrj * World *
