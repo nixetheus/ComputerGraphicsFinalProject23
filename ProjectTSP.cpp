@@ -31,7 +31,9 @@ struct MeshUniformBlock {
 
 // Overtlay Data
 struct OverlayUniformBlock {
-	alignas(4) float visible;
+	alignas(4) int screenW;
+	alignas(4) int screenH;
+	alignas(4) float currentTime;
 };
 
 // The vertices data structures
@@ -103,6 +105,8 @@ class ProjectTSP : public BaseProject {
 	// TODO CHANGE POSITION OF THIS CODE, MIMIC A16
 	// Other application parameters
 	float Ar;
+	int currentWidth;
+	float currentHeight;
 	glm::mat4 World;
 	glm::mat4 ViewPrj;
 	//glm::vec3 cameraPos;
@@ -114,8 +118,8 @@ class ProjectTSP : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 800;
-		windowHeight = 600;
+		windowWidth = 1600; currentWidth = windowWidth;
+		windowHeight = 1200; currentHeight = windowHeight;
 		windowTitle = "Project The Stanley Parable";
     	windowResizable = GLFW_TRUE;
 		initialBackgroundColor = {0.0f, 0.6f, 0.8f, 1.0f};
@@ -132,6 +136,8 @@ class ProjectTSP : public BaseProject {
 	void onWindowResize(int w, int h) {
 		std::cout << "Window resized to: " << w << " x " << h << "\n";
 		Ar = (float)w / (float)h;
+		currentWidth = w;
+		currentHeight = h;
 	}
 	
 	// Here you load and setup all your Vulkan Models and Texutures.
@@ -221,7 +227,7 @@ class ProjectTSP : public BaseProject {
 		PProcedural.init(this, &VMesh, "shaders/ProceduralVert.spv", "shaders/ProceduralFrag.spv", { &DSLGubo, &DSLSpotLight, &DSLProcedural });
 		POverlay.init(this, &VOverlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSLOverlay });
 		POverlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
-			VK_CULL_MODE_NONE, false);
+			VK_CULL_MODE_NONE, true);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
 		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
@@ -237,7 +243,7 @@ class ProjectTSP : public BaseProject {
 
 		// Title Overlay
 		MTitle.vertices = { {{-1.0f, -1.0f}, {0.0f, 0.0f}}, {{1.0f, -1.0f}, {1.0f, 0.0f}},
-						 {{ -1.0f, 1.0f}, {0.0f, 1.0f}}, {{ 1.0f, 1.0f}, {1.0f, 1.0f}} };
+						 {{ -1.0f, 1.0f}, {0.0f, 1.0f}}, {{1.0f, 1.0f}, {1.0f, 1.0f}} };
 		MTitle.indices = { 0, 2, 1, 1, 3, 2};
 		MTitle.initMesh(this, &VOverlay);
 
@@ -666,7 +672,9 @@ class ProjectTSP : public BaseProject {
 		DSProcedural.map(currentImage, &uboProcedural, sizeof(uboProcedural), 0);
 
 		/* Map the uniform data block to the GPU */
-		uboTitle.visible = 1.0f;
+		uboTitle.screenW = currentWidth;
+		uboTitle.screenH = currentHeight;
+		uboTitle.currentTime = totalSeconds;
 		DSTitle.map(currentImage, &uboTitle, sizeof(uboTitle), 0);
 		
 	}
