@@ -13,6 +13,7 @@ struct GlobalUniformBufferObject {
 
 // Spot Light
 struct SpotUniformBufferObject {
+	alignas(4) float on;
 	alignas(16) glm::vec3 lightPos;
 	alignas(16) glm::vec3 lightDir;
 	alignas(16) glm::vec4 lightColor;
@@ -122,7 +123,7 @@ class ProjectTSP : public BaseProject {
 		windowHeight = 1200; currentHeight = windowHeight;
 		windowTitle = "Project The Stanley Parable";
     	windowResizable = GLFW_TRUE;
-		initialBackgroundColor = {0.0f, 0.6f, 0.8f, 1.0f};
+		initialBackgroundColor = {0.075f, 0.075f, 0.075f, 1.0f};
 		
 		// Descriptor pool sizes
 		uniformBlocksInPool = 30;
@@ -274,7 +275,7 @@ class ProjectTSP : public BaseProject {
 		TComputer2.init(this, "textures/Computer2.png");
 
 		// Emitting Textures
-		TMeshEmit.init(this, "textures/TexturesCity.png");
+		TMeshEmit.init(this, "textures/MeshEmit.png");
 		TComputerEmit1.init(this, "textures/ComputerEmit1.png");
 		TComputerEmit2.init(this, "textures/ComputerEmit2.png");
 
@@ -540,6 +541,7 @@ class ProjectTSP : public BaseProject {
 	}
 
 	// Total Time Passed for Clock Arm
+	float spotActive = 1.0f;
 	int computerModel = 0;
 	float totalSeconds = 0;
 
@@ -559,7 +561,7 @@ class ProjectTSP : public BaseProject {
 
 		// FILL AND SET GLOBAL UNIFORMS
 		// GUBO
-		gubo.DlightDir = glm::normalize(glm::vec3(1, 1, 1));
+		gubo.DlightDir = glm::mat3(World) * glm::normalize(glm::vec3(1, 1, 1));
 		gubo.DlightColor = glm::vec4(0.2f, 0.2f, 0.2f, 1);
 		gubo.AmbLightColor = glm::vec3(0.1f);
 		gubo.eyePos = Pos;
@@ -567,6 +569,7 @@ class ProjectTSP : public BaseProject {
 
 		// SPOT UBO
 		glm::vec3 lampPos = glm::vec3(4.5f, 4.1f, -2.5f); // Position of the lamp object
+		uboSpot.on = spotActive;
 		uboSpot.lightDir = glm::mat3(World) * glm::normalize(glm::vec3(-3, -1, 0.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
@@ -575,7 +578,7 @@ class ProjectTSP : public BaseProject {
 
 		glm::mat4 objWorld;
 		// FILL AND SET OBJECTS UNIFORMS
-		uboTSP.amb = 1.0f; uboTSP.gamma = 180.0f; uboTSP.sColor = glm::vec3(1.0f);
+		uboTSP.amb = 1.0f; uboTSP.gamma = 180.0f; uboTSP.sColor = glm::vec3(0.0f);
 		uboTSP.mvpMat = ViewPrj * World;
 		uboTSP.mMat = World;
 		uboTSP.nMat = glm::inverse(glm::transpose(World));
@@ -598,7 +601,7 @@ class ProjectTSP : public BaseProject {
 		DSArm.map(currentImage, &uboArm, sizeof(uboArm), 0);
 
 		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.6f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
-		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(1.0f);
+		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(0.0f);
 		uboChair.mvpMat = ViewPrj * objWorld;
 		uboChair.mMat = objWorld;
 		uboChair.nMat = glm::inverse(glm::transpose(objWorld));
@@ -612,14 +615,14 @@ class ProjectTSP : public BaseProject {
 		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
 
 		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-1.5f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboPaperTray1.amb = 1.0f; uboPaperTray1.gamma = 180.0f; uboPaperTray1.sColor = glm::vec3(1.0f);
+		uboPaperTray1.amb = 1.0f; uboPaperTray1.gamma = 180.0f; uboPaperTray1.sColor = glm::vec3(0.0f);
 		uboPaperTray1.mvpMat = ViewPrj * objWorld;
 		uboPaperTray1.mMat = objWorld;
 		uboPaperTray1.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPaperTray1.map(currentImage, &uboPaperTray1, sizeof(uboPaperTray1), 0);
 
 		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-0.7f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboPaperTray2.amb = 1.0f; uboPaperTray2.gamma = 180.0f; uboPaperTray2.sColor = glm::vec3(1.0f);
+		uboPaperTray2.amb = 1.0f; uboPaperTray2.gamma = 180.0f; uboPaperTray2.sColor = glm::vec3(0.0f);
 		uboPaperTray2.mvpMat = ViewPrj * objWorld;
 		uboPaperTray2.mMat = objWorld;
 		uboPaperTray2.nMat = glm::inverse(glm::transpose(objWorld));
@@ -640,14 +643,14 @@ class ProjectTSP : public BaseProject {
 		DSLamp.map(currentImage, &uboLamp, sizeof(uboLamp), 0);
 
 		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
-		uboPencil.amb = 1.0f; uboPencil.gamma = 180.0f; uboPencil.sColor = glm::vec3(1.0f);
+		uboPencil.amb = 1.0f; uboPencil.gamma = 180.0f; uboPencil.sColor = glm::vec3(0.0f);
 		uboPencil.mvpMat = ViewPrj * objWorld;
 		uboPencil.mMat = objWorld;
 		uboPencil.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
 
 		// Computer Models
-		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
+		uboComputer.amb = 1.0f; uboComputer.gamma = 32.0f; uboComputer.sColor = glm::vec3(1.0f);
 		uboComputer.nMat = glm::inverse(glm::transpose(World));
 
 		float computerFlesh = ((int)(totalSeconds * 2) % 2);
@@ -715,8 +718,7 @@ class ProjectTSP : public BaseProject {
 			if (!debounce) {
 				debounce = true;
 				curDebounce = GLFW_KEY_L;
-				computerModel += 1;
-				computerModel %= 2;
+				if (spotActive > 0) spotActive = 0.0f; else spotActive = 1.0f;
 			}
 		}
 		else {
