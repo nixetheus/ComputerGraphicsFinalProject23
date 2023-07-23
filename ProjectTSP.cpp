@@ -573,6 +573,7 @@ class ProjectTSP : public BaseProject {
 		uboSpot.eyePos = Pos;
 		DSSpotLight.map(currentImage, &uboSpot, sizeof(uboSpot), 0);
 
+		glm::mat4 objWorld;
 		// FILL AND SET OBJECTS UNIFORMS
 		uboTSP.amb = 1.0f; uboTSP.gamma = 180.0f; uboTSP.sColor = glm::vec3(1.0f);
 		uboTSP.mvpMat = ViewPrj * World;
@@ -580,73 +581,73 @@ class ProjectTSP : public BaseProject {
 		uboTSP.nMat = glm::inverse(glm::transpose(World));
 		DSTSP.map(currentImage, &uboTSP, sizeof(uboTSP), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
-		uboClock.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
-		uboClock.mMat = World;
-		uboClock.nMat = glm::inverse(glm::transpose(World));
+		uboClock.mvpMat = ViewPrj * objWorld;
+		uboClock.mMat = objWorld;
+		uboClock.nMat = glm::inverse(glm::transpose(objWorld));
 		DSClock.map(currentImage, &uboClock, sizeof(uboClock), 0);
 
 		float armRotation = (((int)totalSeconds % 60) / 60.0f) * 360;
-		uboArm.amb = 1.0f; uboArm.gamma = 180.0f; uboArm.sColor = glm::vec3(1.0f);
-		uboArm.mvpMat = ViewPrj * World *
+		objWorld = World *
 			(glm::translate(glm::mat4(1.0), glm::vec3(-6.15f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(-armRotation), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(7, 7, 5)));
-		uboArm.mMat = World;
-		uboArm.nMat = glm::inverse(glm::transpose(World));
+		uboArm.amb = 1.0f; uboArm.gamma = 180.0f; uboArm.sColor = glm::vec3(1.0f);
+		uboArm.mvpMat = ViewPrj * objWorld;
+		uboArm.mMat = objWorld;
+		uboArm.nMat = glm::inverse(glm::transpose(objWorld));
 		DSArm.map(currentImage, &uboArm, sizeof(uboArm), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.6f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
 		uboChair.amb = 1.0f; uboChair.gamma = 10000.0f; uboChair.sColor = glm::vec3(1.0f);
-		uboChair.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(-3.75f, 0.6f, -0.6f)) * glm::rotate(glm::mat4(1.0), glm::radians(-75.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.7, 2.7, 2.7)));
-		uboChair.mMat = World;
-		uboChair.nMat = glm::inverse(glm::transpose(World));
+		uboChair.mvpMat = ViewPrj * objWorld;
+		uboChair.mMat = objWorld;
+		uboChair.nMat = glm::inverse(glm::transpose(objWorld));
 		DSChair.map(currentImage, &uboChair, sizeof(uboChair), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
-		uboPainting.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboPainting.mMat = World;
-		uboPainting.nMat = glm::inverse(glm::transpose(World));
+		uboPainting.mvpMat = ViewPrj * objWorld;
+		uboPainting.mMat = objWorld;
+		uboPainting.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPainting.map(currentImage, &uboPainting, sizeof(uboPainting), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-1.5f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPaperTray1.amb = 1.0f; uboPaperTray1.gamma = 180.0f; uboPaperTray1.sColor = glm::vec3(1.0f);
-		uboPaperTray1.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-1.5f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboPaperTray1.mMat = World;
-		uboPaperTray1.nMat = glm::inverse(glm::transpose(World));
+		uboPaperTray1.mvpMat = ViewPrj * objWorld;
+		uboPaperTray1.mMat = objWorld;
+		uboPaperTray1.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPaperTray1.map(currentImage, &uboPaperTray1, sizeof(uboPaperTray1), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-0.7f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPaperTray2.amb = 1.0f; uboPaperTray2.gamma = 180.0f; uboPaperTray2.sColor = glm::vec3(1.0f);
-		uboPaperTray2.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(-0.7f, 2.2f, -2.5f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboPaperTray2.mMat = World;
-		uboPaperTray2.nMat = glm::inverse(glm::transpose(World));
+		uboPaperTray2.mvpMat = ViewPrj * objWorld;
+		uboPaperTray2.mMat = objWorld;
+		uboPaperTray2.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPaperTray2.map(currentImage, &uboPaperTray2, sizeof(uboPaperTray2), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(1.5f, 2.1f, -2.1f)) * glm::rotate(glm::mat4(1.0), glm::radians(-115.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboSharpener.amb = 1.0f; uboSharpener.gamma = 180.0f; uboSharpener.sColor = glm::vec3(1.0f);
-		uboSharpener.mvpMat = ViewPrj * World *
-							(glm::translate(glm::mat4(1.0), glm::vec3(1.5f, 2.1f, -2.1f)) * glm::rotate(glm::mat4(1.0), glm::radians(-115.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
-		uboSharpener.mMat = World;
-		uboSharpener.nMat = glm::inverse(glm::transpose(World));
+		uboSharpener.mvpMat = ViewPrj * objWorld;
+		uboSharpener.mMat = objWorld;
+		uboSharpener.nMat = glm::inverse(glm::transpose(objWorld));
 		DSSharpener.map(currentImage, &uboSharpener, sizeof(uboSharpener), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), lampPos) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.5, 2.5, 2.5)));
 		uboLamp.amb = 1.0f; uboLamp.gamma = 180.0f; uboLamp.sColor = glm::vec3(1.0f);
-		uboLamp.mvpMat = ViewPrj * World * 
-						( glm::translate(glm::mat4(1.0), lampPos) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(2.5, 2.5, 2.5)));
-		uboLamp.mMat = World;
-		uboLamp.nMat = glm::inverse(glm::transpose(World));
+		uboLamp.mvpMat = ViewPrj * objWorld;
+		uboLamp.mMat = objWorld;
+		uboLamp.nMat = glm::inverse(glm::transpose(objWorld));
 		DSLamp.map(currentImage, &uboLamp, sizeof(uboLamp), 0);
 
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
 		uboPencil.amb = 1.0f; uboPencil.gamma = 180.0f; uboPencil.sColor = glm::vec3(1.0f);
-		uboPencil.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(0.7f, 2.06f, -1.8f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(4.5, 4.5, 4.5)));
-		uboPencil.mMat = World;
-		uboPencil.nMat = glm::inverse(glm::transpose(World));
+		uboPencil.mvpMat = ViewPrj * objWorld;
+		uboPencil.mMat = objWorld;
+		uboPencil.nMat = glm::inverse(glm::transpose(objWorld));
 		DSPencil.map(currentImage, &uboPencil, sizeof(uboPencil), 0);
 
 		// Computer Models
 		uboComputer.amb = 1.0f; uboComputer.gamma = 180.0f; uboComputer.sColor = glm::vec3(1.0f);
-		uboComputer.mMat = World;
 		uboComputer.nMat = glm::inverse(glm::transpose(World));
 
 		float computerFlesh = ((int)(totalSeconds * 2) % 2);
@@ -655,19 +656,24 @@ class ProjectTSP : public BaseProject {
 		if (computerFlesh == 1) scaleComputer2 = glm::vec3(2); else scaleComputer2 = glm::vec3(0);
 
 		// Computer 1
-		uboComputer.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer1));
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer1));
+		
+		uboComputer.mvpMat = ViewPrj * objWorld;
+		uboComputer.mMat = objWorld;
 		DSComputer1.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
 
 		// Computer 2
-		uboComputer.mvpMat = ViewPrj * World *
-			(glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer2));
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-5.0f, 2.3f, -2.4f)) * glm::rotate(glm::mat4(1.0), glm::radians(-55.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), scaleComputer2));
+
+		uboComputer.mvpMat = ViewPrj * objWorld;
+		uboComputer.mMat = objWorld;
 		DSComputer2.map(currentImage, &uboComputer, sizeof(uboComputer), 0);
 
 		// Procedrual
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.35f, 2.23f, -2.25f)));
 		uboProcedural.amb = 1.0f; uboProcedural.gamma = 180.0f; uboProcedural.sColor = glm::vec3(1.0f);
-		uboProcedural.mvpMat = ViewPrj * World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.35f, 2.23f, -2.25f)));
-		uboProcedural.mMat = World;
+		uboProcedural.mvpMat = ViewPrj * objWorld;
+		uboProcedural.mMat = objWorld;
 		uboProcedural.nMat = glm::inverse(glm::transpose(World));
 		DSProcedural.map(currentImage, &uboProcedural, sizeof(uboProcedural), 0);
 
