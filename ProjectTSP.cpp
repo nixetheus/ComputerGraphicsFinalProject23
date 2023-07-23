@@ -604,7 +604,7 @@ class ProjectTSP : public BaseProject {
 		uboChair.nMat = glm::inverse(glm::transpose(objWorld));
 		DSChair.map(currentImage, &uboChair, sizeof(uboChair), 0);
 
-		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-3.2f, 5.6f, -3.45f)) * glm::rotate(glm::mat4(1.0), glm::radians(180.0f), glm::vec3(0, 1, 0)) * glm::scale(glm::mat4(1.0), glm::vec3(1.5, 1.5, 1.5)));
 		uboPainting.amb = 1.0f; uboPainting.gamma = 180.0f; uboPainting.sColor = glm::vec3(1.0f);
 		uboPainting.mvpMat = ViewPrj * objWorld;
 		uboPainting.mMat = objWorld;
