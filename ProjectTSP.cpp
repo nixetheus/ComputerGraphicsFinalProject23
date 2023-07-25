@@ -119,8 +119,8 @@ class ProjectTSP : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 1600; currentWidth = windowWidth;
-		windowHeight = 1200; currentHeight = windowHeight;
+		windowWidth = 1920; currentWidth = windowWidth;
+		windowHeight = 1080; currentHeight = windowHeight;
 		windowTitle = "Project The Stanley Parable";
     	windowResizable = GLFW_TRUE;
 		initialBackgroundColor = {0.075f, 0.075f, 0.075f, 1.0f};
@@ -130,7 +130,7 @@ class ProjectTSP : public BaseProject {
 		texturesInPool = 30;
 		setsInPool = 30;
 		
-		Ar = 4.0f / 3.0f;
+		Ar = (float) windowWidth / windowHeight;
 	}
 	
 	// What to do when the window changes size
@@ -749,13 +749,15 @@ class ProjectTSP : public BaseProject {
 		// Set moving direction, changing them with the camera (yaw) pointing direction
 		glm::vec3 ux = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(1,0,0,1);
 		glm::vec3 uz = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0,1,0)) * glm::vec4(0,0,-1,1);
+		glm::vec3 uy = glm::rotate(glm::mat4(1.0f), Yaw, glm::vec3(0, 1, 0)) * glm::vec4(0, 1, 0, 1);
 
 		// Move position 
 		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
 		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
+		Pos = Pos + MOVE_SPEED * m.y * uy * deltaT;
 		// Set height position, low after F pressed, high after R pressed (F and R set m.y value to -1/+1, maybe change to SHIFT)
-		Pos.y = m.y == -1.0f ? lowPos : 
-					m.y == 1.0f ? highPos : Pos.y;
+		//Pos.y = m.y == -1.0f ? lowPos : 
+		//			m.y == 1.0f ? highPos : Pos.y;
 
 		// Final world matrix computaiton
 		World = glm::rotate(glm::mat4(1.0f), -Roll, glm::vec3(0, 0, 1)) *
