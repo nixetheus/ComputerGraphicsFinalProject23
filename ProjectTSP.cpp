@@ -570,9 +570,9 @@ class ProjectTSP : public BaseProject {
 		// SPOT UBO
 		glm::vec3 lampPos = glm::vec3(4.5f, 4.1f, -2.5f); // Position of the lamp object
 		uboSpot.on = spotActive;
-		uboSpot.lightDir = glm::mat3(World) * glm::normalize(glm::vec3(-3, -1, 0.0f));
+		uboSpot.lightDir = glm::mat3(World) * glm::normalize(glm::vec3(-3, -1.5f, 0.0f));
 		uboSpot.lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-		uboSpot.lightPos = World * glm::vec4(lampPos, 1.);
+		uboSpot.lightPos = World * glm::vec4(lampPos + glm::vec3(0.0f, 1.2f, 0.0f), 1.);
 		uboSpot.eyePos = Pos;
 		DSSpotLight.map(currentImage, &uboSpot, sizeof(uboSpot), 0);
 
