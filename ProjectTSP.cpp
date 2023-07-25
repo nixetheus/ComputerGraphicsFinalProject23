@@ -37,6 +37,12 @@ struct OverlayUniformBlock {
 	alignas(4) float currentTime;
 };
 
+struct OverlayXUniformBlock {
+	alignas(4) int screenW;
+	alignas(4) int screenH;
+	alignas(4) int visible;
+};
+
 // The vertices data structures
 // Mesh structure
 struct VertexMesh {
@@ -67,26 +73,27 @@ class ProjectTSP : public BaseProject {
 
 	// Pipelines [Shader couples]
 	Pipeline PMesh, PProcedural;
-	Pipeline POverlay;
+	Pipeline POverlay, POverlayX;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model<VertexMesh> MTSP, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MLamp, MPencil, MProcedural;
+	Model<VertexMesh> MTSP, MDrawer, MClock, MArm, MChair, MPainting, MPaperTray1, MPaperTray2, MSharpener, MLamp, MPencil, MProcedural;
 	Model<VertexMesh> MComputer1, MComputer2;
-	Model<VertexOverlay> MTitle;
+	Model<VertexOverlay> MTitle, MPressX;
 
-	Texture TTSP, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural, TTitle;
+	Texture TTSP, TDrawer, TClock, TArm, TChair, TPainting, TPaperTray1, TPaperTray2, TSharpener, TLamp, TPencil, TProcedural, TTitle, TPressX;
 	Texture TComputer1, TComputer2;
 	Texture TMeshEmit, TComputerEmit1, TComputerEmit2;
 
-	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural, DSTitle;
+	DescriptorSet DSGubo, DSSpotLight, DSTSP, DSDrawer, DSClock, DSArm, DSChair, DSPainting, DSPaperTray1, DSPaperTray2, DSSharpener, DSLamp, DSPencil, DSProcedural, DSTitle, DSPressX;
 	DescriptorSet DSComputer1, DSComputer2;
 
 	// C++ storage for uniform variables
 	GlobalUniformBufferObject gubo;
 	SpotUniformBufferObject uboSpot;
-	MeshUniformBlock uboTSP, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboLamp, uboPencil, uboProcedural;
+	MeshUniformBlock uboTSP, uboDrawer, uboClock, uboArm, uboChair, uboPainting, uboPaperTray1, uboPaperTray2, uboSharpener, uboLamp, uboPencil, uboProcedural;
 	MeshUniformBlock uboComputer;
 	OverlayUniformBlock uboTitle;
+	OverlayXUniformBlock uboPressX;
 
 	/////////////////////////// PARAMETERS ///////////////////////////
 		// Camera FOV-y, Near Plane and Far Plane
@@ -115,6 +122,13 @@ class ProjectTSP : public BaseProject {
 	float Yaw = glm::radians(40.0f);
 	float Pitch = glm::radians(-40.0f);
 	float Roll = glm::radians(0.0f);
+
+	float drawerPos = 0.0f;
+	glm::vec3 forward;
+
+	float angleBetweenVectors(const glm::vec3 a, const glm::vec3 b) {
+		return std::acos(glm::dot(a, b)) * (180.0f / glm::pi<float>() );
+	}
 
 	// Here you set the main application parameters
 	void setWindowParameters() {
@@ -229,9 +243,13 @@ class ProjectTSP : public BaseProject {
 		POverlay.init(this, &VOverlay, "shaders/OverlayVert.spv", "shaders/OverlayFrag.spv", { &DSLOverlay });
 		POverlay.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
 			VK_CULL_MODE_NONE, true);
+		POverlayX.init(this, &VOverlay, "shaders/OverlayXVert.spv", "shaders/OverlayXFrag.spv", { &DSLOverlay });
+		POverlayX.setAdvancedFeatures(VK_COMPARE_OP_LESS_OR_EQUAL, VK_POLYGON_MODE_FILL,
+			VK_CULL_MODE_NONE, true);
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev10.obj", OBJ);
+		MTSP.init(this, &VMesh, "models/Room/TheStanleyParablev12.obj", OBJ);
+		MDrawer.init(this, &VMesh, "models/Room/Drawer.obj", OBJ);
 		MClock.init(this, &VMesh, "models/Room/Objects/Clock.obj", OBJ);
 		MArm.init(this, &VMesh, "models/Room/Objects/ClockArm.obj", OBJ);
 		MChair.init(this, &VMesh, "models/Room/Objects/Chair.obj", OBJ);
@@ -248,6 +266,12 @@ class ProjectTSP : public BaseProject {
 		MTitle.indices = { 0, 2, 1, 1, 3, 2};
 		MTitle.initMesh(this, &VOverlay);
 
+		// Press X Overlay
+		MPressX.vertices = { {{-1.0f, -1.0f}, {0.0f, 0.0f}}, {{1.0f, -1.0f}, {1.0f, 0.0f}},
+						 {{ -1.0f, 1.0f}, {0.0f, 1.0f}}, {{1.0f, 1.0f}, {1.0f, 1.0f}} };
+		MPressX.indices = { 0, 2, 1, 1, 3, 2 };
+		MPressX.initMesh(this, &VOverlay);
+
 		// Computers
 		MComputer1.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
 		MComputer2.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
@@ -260,6 +284,7 @@ class ProjectTSP : public BaseProject {
 		TArm.init(this, "textures/PaperTray1.png");
 		TChair.init(this, "textures/ChairTexture.png");
 		TTSP.init(this, "textures/RoomTexture2.png");
+		TDrawer.init(this, "textures/RoomTexture2.png");
 		TPainting.init(this, "textures/Painting.png");
 		TPaperTray1.init(this, "textures/PaperTray1.png");
 		TPaperTray2.init(this, "textures/PaperTray2.png");
@@ -269,6 +294,7 @@ class ProjectTSP : public BaseProject {
 		TProcedural.init(this, "textures/Mug.png");
 
 		TTitle.init(this, "textures/Title.png");
+		TPressX.init(this, "textures/OverlayInteraction.png");
 
 		// Computers
 		TComputer1.init(this, "textures/Computer1.png");
@@ -286,6 +312,7 @@ class ProjectTSP : public BaseProject {
 		// This creates a new pipeline (with the current surface), using its shaders
 		PMesh.create();
 		POverlay.create();
+		POverlayX.create();
 		PProcedural.create();
 
 		DSGubo.init(this, &DSLGubo, {
@@ -299,6 +326,12 @@ class ProjectTSP : public BaseProject {
 		DSTSP.init(this, &DSLMesh, {
 			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
 			{1, TEXTURE, 0, &TTSP},
+			{2, TEXTURE, 0, &TMeshEmit},
+			});
+
+		DSDrawer.init(this, &DSLMesh, {
+			{0, UNIFORM, sizeof(MeshUniformBlock), nullptr},
+			{1, TEXTURE, 0, &TDrawer},
 			{2, TEXTURE, 0, &TMeshEmit},
 			});
 
@@ -378,6 +411,10 @@ class ProjectTSP : public BaseProject {
 					{1, TEXTURE, 0, &TTitle}
 			});
 
+		DSPressX.init(this, &DSLOverlay, {
+					{0, UNIFORM, sizeof(OverlayXUniformBlock), nullptr},
+					{1, TEXTURE, 0, &TPressX}
+			});
 	}
 
 	// Here you destroy your pipelines and Descriptor Sets!
@@ -385,11 +422,13 @@ class ProjectTSP : public BaseProject {
 
 		PMesh.cleanup();
 		POverlay.cleanup();
+		POverlayX.cleanup();
 		PProcedural.cleanup();
 
 		DSGubo.cleanup();
 		DSSpotLight.cleanup();
 		DSTSP.cleanup();
+		DSDrawer.cleanup();
 		DSClock.cleanup();
 		DSArm.cleanup();
 		DSChair.cleanup();
@@ -403,6 +442,7 @@ class ProjectTSP : public BaseProject {
 		DSLamp.cleanup();
 		DSProcedural.cleanup();
 		DSTitle.cleanup();
+		DSPressX.cleanup();
 	}
 
 	// Here you destroy all the Models, Texture and Desc. Set Layouts you created!
@@ -410,6 +450,7 @@ class ProjectTSP : public BaseProject {
 	void localCleanup() {
 
 		MTSP.cleanup();
+		MDrawer.cleanup();
 		MClock.cleanup();
 		MArm.cleanup();
 		MChair.cleanup();
@@ -425,6 +466,7 @@ class ProjectTSP : public BaseProject {
 		MTitle.cleanup();
 
 		TTSP.cleanup();
+		TDrawer.cleanup();
 		TClock.cleanup();
 		TArm.cleanup();
 		TChair.cleanup();
@@ -441,6 +483,7 @@ class ProjectTSP : public BaseProject {
 		TComputerEmit1.cleanup();
 		TComputerEmit2.cleanup();
 		TTitle.cleanup();
+		TPressX.cleanup();
 
 		DSLGubo.cleanup();
 		DSLSpotLight.cleanup();
@@ -451,6 +494,7 @@ class ProjectTSP : public BaseProject {
 		PMesh.destroy();
 		PProcedural.destroy();
 		POverlay.destroy();
+		POverlayX.destroy();
 	}
 	
 	// Here it is the creation of the command buffer:
@@ -470,6 +514,11 @@ class ProjectTSP : public BaseProject {
 		DSTSP.bind(commandBuffer, PMesh, 2, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MTSP.indices.size()), 1, 0, 0, 0);
+
+		MDrawer.bind(commandBuffer);
+		DSDrawer.bind(commandBuffer, PMesh, 2, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MDrawer.indices.size()), 1, 0, 0, 0);
 
 		MClock.bind(commandBuffer);
 		DSClock.bind(commandBuffer, PMesh, 2, currentImage);
@@ -538,6 +587,12 @@ class ProjectTSP : public BaseProject {
 		DSTitle.bind(commandBuffer, POverlay, 0, currentImage);
 		vkCmdDrawIndexed(commandBuffer,
 			static_cast<uint32_t>(MTitle.indices.size()), 1, 0, 0, 0);
+
+		POverlayX.bind(commandBuffer);
+		MPressX.bind(commandBuffer);
+		DSPressX.bind(commandBuffer, POverlayX, 0, currentImage);
+		vkCmdDrawIndexed(commandBuffer,
+			static_cast<uint32_t>(MPressX.indices.size()), 1, 0, 0, 0);
 	}
 
 	// Total Time Passed for Clock Arm
@@ -583,6 +638,13 @@ class ProjectTSP : public BaseProject {
 		uboTSP.mMat = World;
 		uboTSP.nMat = glm::inverse(glm::transpose(World));
 		DSTSP.map(currentImage, &uboTSP, sizeof(uboTSP), 0);
+
+		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(drawerPos+6.36f, 1.58f, 2.07f)) * glm::rotate(glm::mat4(1.0), glm::radians(90.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(1.03, 0.99, 1)));
+		uboDrawer.amb = 1.0f; uboDrawer.gamma = 180.0f; uboDrawer.sColor = glm::vec3(0.0f);
+		uboDrawer.mvpMat = ViewPrj * objWorld;
+		uboDrawer.mMat = objWorld;
+		uboDrawer.nMat = glm::inverse(glm::transpose(objWorld));
+		DSDrawer.map(currentImage, &uboDrawer, sizeof(uboDrawer), 0);
 
 		objWorld = World * (glm::translate(glm::mat4(1.0), glm::vec3(-6.2f, 6.1f, 2.3f)) * glm::rotate(glm::mat4(1.0), glm::radians(40.0f), glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.0), glm::radians(-90.0f), glm::vec3(0, 0, 1)) * glm::scale(glm::mat4(1.0), glm::vec3(2, 2, 2)));
 		uboClock.amb = 1.0f; uboClock.gamma = 180.0f; uboClock.sColor = glm::vec3(1.0f);
@@ -686,6 +748,10 @@ class ProjectTSP : public BaseProject {
 		uboTitle.currentTime = totalSeconds;
 		DSTitle.map(currentImage, &uboTitle, sizeof(uboTitle), 0);
 		
+		uboPressX.screenW = currentWidth;
+		uboPressX.screenH = currentHeight;
+		DSPressX.map(currentImage, &uboPressX, sizeof(uboPressX), 0);
+
 	}
 	
 
@@ -702,6 +768,11 @@ class ProjectTSP : public BaseProject {
 		r = glm::vec3(0.0f);
 		m = glm::vec3(0.0f);
 		//m = glm::vec3(0.0f);
+		
+		forward.z = cos(Yaw) * cos(Pitch);
+		forward.y = sin(Pitch);
+		forward.x = sin(Yaw) * cos(Pitch);
+
 		// Initialize Camera Height to highPos
 		Pos.y = Pos.y == 0.0f ? highPos : Pos.y;
 
@@ -727,7 +798,26 @@ class ProjectTSP : public BaseProject {
 				curDebounce = 0;
 			}
 		}
-				
+		if (1.5f <= Pos.x && Pos.x <= 3.4f && 1.5f <= Pos.z && Pos.z <= 3.5f && angleBetweenVectors(forward, glm::normalize(glm::vec3(-1, -1, 0))) <= 45) {
+			uboPressX.visible = 1;
+			if (glfwGetKey(window, GLFW_KEY_X)) {
+				if (!debounce) {
+					debounce = true;
+					curDebounce = GLFW_KEY_X;
+					if (drawerPos != 0) drawerPos = 0.0f; else drawerPos = -1.5f;
+				}
+			}
+			else {
+				if ((curDebounce == GLFW_KEY_X) && debounce) {
+					debounce = false;
+					curDebounce = 0;
+				}
+			}
+		}
+		else
+			uboPressX.visible = 0;
+		
+		std::cout <<"\nx: " << Pos.x << " y: " << Pos.y << "z: " << Pos.z << " Yaw: " << Yaw  << " Diff: " << angleBetweenVectors(forward, glm::normalize(glm::vec3(-1, -1, 0)));
 		
 		/////////////////////////// WORLD ////////////////////////////
 
@@ -755,6 +845,8 @@ class ProjectTSP : public BaseProject {
 		Pos = Pos + MOVE_SPEED * m.x * ux * deltaT;
 		Pos = Pos + MOVE_SPEED * m.z * uz * deltaT;
 		Pos = Pos + MOVE_SPEED * m.y * uy * deltaT;
+		Pos.y = Pos.y < lowPos ? lowPos :
+			(Pos.y > highPos ? highPos: Pos.y);
 		// Set height position, low after F pressed, high after R pressed (F and R set m.y value to -1/+1, maybe change to SHIFT)
 		//Pos.y = m.y == -1.0f ? lowPos : 
 		//			m.y == 1.0f ? highPos : Pos.y;
