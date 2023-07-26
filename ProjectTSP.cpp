@@ -273,8 +273,8 @@ class ProjectTSP : public BaseProject {
 		MPressX.initMesh(this, &VOverlay);
 
 		// Computers
-		MComputer1.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
-		MComputer2.init(this, &VMesh, "models/Room/Objects/Computer.obj", OBJ);
+		MComputer1.init(this, &VMesh, "models/Room/Objects/ComputerV2.obj", OBJ);
+		MComputer2.init(this, &VMesh, "models/Room/Objects/ComputerV2.obj", OBJ);
 
 		// Procedural
 		createProcedural(MProcedural.vertices, MProcedural.indices);
