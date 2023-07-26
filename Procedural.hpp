@@ -16,8 +16,8 @@ void ProjectTSP::createProcedural(std::vector<VertexMesh>& vDef, std::vector<uin
     // External cylinder
     for (int i = 0; i < definition; i++) {
 
-        x = cos(i * 2 * M_PI / definition) * externalRay;
-        z = sin(i * 2 * M_PI / definition) * externalRay;
+        x = cos(i * 2 * M_PI / (definition - 1)) * externalRay;
+        z = sin(i * 2 * M_PI / (definition - 1)) * externalRay;
 
         // Top Vertexes
         y = 1 * height;
@@ -30,16 +30,18 @@ void ProjectTSP::createProcedural(std::vector<VertexMesh>& vDef, std::vector<uin
         vDef.push_back({ {x, y, z}, {0.0f, -1.0f, 0.0f}, {0,0} }); // BOTTOM NORMAL
 
         // Triangles
-        vIdx.push_back(i * 4); vIdx.push_back((i * 4 + 4) % (4 * definition)); vIdx.push_back(i * 4 + 2); 
-        vIdx.push_back(i * 4 + 2); vIdx.push_back((i * 4 + 4) % (4 * definition)); vIdx.push_back((i * 4 + 6) % (4 * definition));
+        if (i != definition - 1) {
+            vIdx.push_back(i * 4); vIdx.push_back((i * 4 + 4) % (4 * definition)); vIdx.push_back(i * 4 + 2);
+            vIdx.push_back(i * 4 + 2); vIdx.push_back((i * 4 + 4) % (4 * definition)); vIdx.push_back((i * 4 + 6) % (4 * definition));
+        }
     }
 
     // Internal Cylinder
     float bottomBorder = 0.01f;
     for (int i = 0; i < definition; i++) {
 
-        x = cos(i * 2 * M_PI / definition) * internalRay;
-        z = sin(i * 2 * M_PI / definition) * internalRay;
+        x = cos(i * 2 * M_PI / (definition - 1)) * internalRay;
+        z = sin(i * 2 * M_PI / (definition - 1)) * internalRay;
 
         // Top Vertexes
         y = 1 * height;
@@ -59,13 +61,13 @@ void ProjectTSP::createProcedural(std::vector<VertexMesh>& vDef, std::vector<uin
     // BOTTOM CIRCLES
     vDef.push_back({ {0, -1 * height, 0}, {0.0f, -1.0f, 0.0f}, {0,0} }); // BOTTOM VERTEX
     vDef.push_back({ {0, -1 * height + bottomBorder, 0}, {0.0f, 1.0f, 0.0f}, {0,0} }); // BOTTOM VERTEX + Border
-    for (int i = 0; i < definition; i++) {
+    for (int i = 0; i < definition - 1; i++) {
         vIdx.push_back(4 * definition * 2); vIdx.push_back(i * 4 + 3); vIdx.push_back((i * 4 + 7) % (4 * definition));  // BOTTOM
         vIdx.push_back(4 * definition * 2 + 1); vIdx.push_back((i * 4 + 7) % (4 * definition) + definition * 4); vIdx.push_back(i * 4 + 3 + definition * 4);  // BOTTOM + border
     }
 
     // ANNULUS
-    for (int i = 0; i < definition; i++) {
+    for (int i = 0; i < definition - 1; i++) {
         vIdx.push_back(i * 4 + 1 + definition * 4); vIdx.push_back((i * 4 + 5) % (4 * definition)); vIdx.push_back(i * 4 + 1);
         vIdx.push_back(i * 4 + 1 + definition * 4); vIdx.push_back((i * 4 + 5) % (4 * definition) + definition * 4); vIdx.push_back((i * 4 + 5) % (4 * definition));
     }
