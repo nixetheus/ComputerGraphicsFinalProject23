@@ -816,8 +816,7 @@ class ProjectTSP : public BaseProject {
 		}
 		else
 			uboPressX.visible = 0;
-		
-		std::cout <<"\nx: " << Pos.x << " y: " << Pos.y << "z: " << Pos.z << " Yaw: " << Yaw  << " Diff: " << angleBetweenVectors(forward, glm::normalize(glm::vec3(-1, -1, 0)));
+	
 		
 		/////////////////////////// WORLD ////////////////////////////
 
