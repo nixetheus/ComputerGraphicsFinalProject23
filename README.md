@@ -11,11 +11,9 @@ This project is a small-scale recreation of a portion from "The Stanley Parable"
 - **3D Modeling**: Experience the magic of 3D modeling in computer graphics. All models where custom made using blender.
 - **Vulkan**: Harness the power of Vulkan, a low-level graphics API, to create a highly efficient and performant rendering.
 
-## Screenshots
+## Screenshot
 
-![Scene Angle 1](link_to_screenshot1.png)
-![Scene Angle 2](link_to_screenshot2.png)
-![Scene Angle 3](link_to_screenshot3.png)
+![Scene Angle 1](Screenshots/final.jpg)
 
 ## Compilation
 
